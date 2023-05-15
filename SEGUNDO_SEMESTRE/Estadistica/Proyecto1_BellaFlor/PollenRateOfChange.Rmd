@@ -1,0 +1,223 @@
+---
+title: "**MCD, Estadística. Pollen Rate Of Change**"
+author: "Santiago Robles, Malena Martinez, Jordan Urías y Rodrígo Gonzáles"
+date: "23/2/2023"
+output: html_document
+---
+
+**1. Cargar las librerías y datos**
+```{r Cargar las librerías y datos}
+# Loading
+library('dplyr') # Para manejo del dataframe
+library("readxl") # Para descarga de archivo xls
+library("tibble") # Para manejo de dataframe
+library("ggplot2")
+# xls files
+data <- read_excel("TB4.xlsx")
+
+```
+
+
+**2. Añadir una columna que es la sumatoria de los renglones**
+```{r Añadir una columna que es la sumatoria de los renglones}
+
+# Se agrega la columna de la sumatoria por renglon, excentando el primero, pues corresponde a la profundidad.
+sum_pollen = rowSums(data %>% select(2:118))
+
+
+# Se añade la columna al dataframe.
+data <- cbind(data, sum_pollen)
+
+
+```
+
+
+
+**3. Quitar los renglones con sólo valores de cero**
+```{r Quitar los renglones con sólo valores de cero}
+# Aplicamos un ciclo "for" para conocer los renglones con sólo ceros de las columnas 1 a la 111.
+for (i in 1:111) {
+  if (sum_pollen[i]== 0) {
+    
+    print(i)
+    }
+}
+
+
+# Únicamente el renglón 12 se compone de ceros; se elimina.
+
+data1 <- data[-12,] 
+sum_pollen1 = sum_pollen[-12]
+
+
+
+```
+
+
+**4. Transformar los datos a proporción**
+
+```{r Transformar los datos a proporción}
+
+# Se elimina la columna de sumatoria, pues ya conocimos aquel renglón cuya sumatoria era igual a cero.
+
+data1 = data1[,-119]
+
+
+# Se trasforma a porcentaje cada entrada del dataframe "data1" y se guarda en el df "data2"
+
+data2 = (data1 %>% select(2:118))/(rowSums(data1 %>% select(2:118)))
+
+
+# Se añade la columa de profundidad.
+
+Profundidad = c(data1[,1])
+
+data3 = cbind(data2, Profundidad)
+
+
+# Se cambia de orden la columna "Profundidad"
+
+data4 = data3[, c(118, 1:117)]
+
+# Se agrega la sumatoria por columna en valor absoluto.
+
+data5 = cbind(data4, sum_pollen1)
+
+```
+
+
+**5. Se calcula la distancia euclidiana entre entradas por renglón**
+
+```{r Se calcula la distancia euclidiana entre entradas por renglón}
+
+# Se calculan las diferencias por renglón del dataframe "data2", compuesto por valores porcentuales, pero sin la columna "Profundidad" ni la columna "sum_pollen1"
+
+data6 <- diff(as.matrix(data2))
+ 
+data6 = as.data.frame(data6) # Se tranforma la matriz a dataframe. 
+
+
+# Se añade la columa de profundidad.
+
+Profundidad1 = Profundidad[-1] # Se crea un vector profundidad con la misma longitud que el dataframe "data6"
+
+data7 = cbind(data6, Profundidad1)
+
+# Se cambia de orden la columna "Profundidad" y transformamos la matriz "data8" en dataframe.
+
+data8 = data7[, c(118, 1:117)]
+data8 = as.data.frame(data8)
+
+
+```
+
+
+**6. Gráficas**
+
+```{r Abies}
+
+########## Abies ###########
+graph_Abies <- ggplot(data8, aes(x=Profundidad1, y=Abies)) +
+  geom_line(color= "cornflowerblue", size=1) + 
+  ylab("Abies (variación del % de polen encontrado)") + 
+  xlab ("Profundidad (cm)") +
+  scale_x_continuous(name= "Profundidad (cm)", breaks= c(0, 50, 100, 150, 200, 250, 300)) +
+  scale_y_continuous(name= "Abies (variación del % de polen encontrado)", breaks= waiver()) +
+  theme(panel.background = element_rect(fill = 'white', color = 'grey'),
+  panel.grid.minor = element_line(color = 'black', linetype = 'dotted'),
+  panel.grid.major = element_line(color = 'black', size = 0.001)) +
+  ggtitle("Abies: variación del % de polen encontrado") +
+  theme(plot.title = element_text(hjust = 0.5)) + 
+  theme(plot.title = element_text(face = "bold", size = 15)) +
+  theme(axis.text.y = element_text(size = 9), 
+          axis.title.y = element_text(size = 9))
+
+graph_Abies
+
+```
+
+```{r Acacia}
+
+########## Acacia ###########
+graph_Acacia <- ggplot(data8, aes(x=Profundidad1, y=Acacia)) +
+  geom_line(color= "cornflowerblue", size=1) + 
+  ylab("Acacia (variación del % de polen encontrado)") + 
+  xlab ("Profundidad (cm)") +
+  scale_x_continuous(name= "Profundidad (cm)", breaks= c(0, 50, 100, 150, 200, 250, 300)) +
+  scale_y_continuous(name= "Acacia (variación del % de polen encontrado)", breaks= waiver()) +
+  theme(panel.background = element_rect(fill = 'white', color = 'grey'),
+  panel.grid.minor = element_line(color = 'black', linetype = 'dotted'),
+  panel.grid.major = element_line(color = 'black', size = 0.002)) +
+  ggtitle("Acacia: variación del % de polen encontrado") +
+  theme(plot.title = element_text(hjust = 0.5)) + 
+  theme(plot.title = element_text(face = "bold", size = 15)) +
+  theme(axis.text.y = element_text(size = 9), 
+          axis.title.y = element_text(size = 9))
+
+graph_Acacia
+
+```
+
+
+```{r Cactoideae}
+
+########## Cactoideae ###########
+graph_Cactoideae <- ggplot(data8, aes(x=Profundidad1, y=Cactoideae)) +
+  geom_line(color= "cornflowerblue", size=1) + 
+  ylab("Cactoideae (variación del % de polen encontrado)") + 
+  xlab ("Profundidad (cm)") +
+  scale_x_continuous(name= "Profundidad (cm)", breaks= c(0, 50, 100, 150, 200, 250, 300)) +
+  scale_y_continuous(name= "Cactoideae (variación del % de polen encontrado)", breaks= waiver()) +
+  theme(panel.background = element_rect(fill = 'white', color = 'grey'),
+  panel.grid.minor = element_line(color = 'black', linetype = 'dotted'),
+  panel.grid.major = element_line(color = 'black', size = 0.002)) +
+  ggtitle("Cactoideae: variación del % de polen encontrado") +
+  theme(plot.title = element_text(hjust = 0.5)) + 
+  theme(plot.title = element_text(face = "bold", size = 15)) +
+  theme(axis.text.y = element_text(size = 9), 
+          axis.title.y = element_text(size = 9))
+
+graph_Cactoideae
+
+```
+
+```{r Amaranthaceae}
+
+########## Amaranthaceae ###########
+graph_Amaranthaceae <- ggplot(data8, aes(x=Profundidad1, y=Amaranthaceae)) +
+  geom_line(color= "cornflowerblue", size=1) + 
+  ylab("Amaranthaceae (variación del % de polen encontrado)") + 
+  xlab ("Profundidad (cm)") +
+  scale_x_continuous(name= "Profundidad (cm)", breaks= c(0, 50, 100, 150, 200, 250, 300)) +
+  scale_y_continuous(name= "Amaranthaceae (variación del % de polen encontrado)", breaks= waiver()) +
+  theme(panel.background = element_rect(fill = 'white', color = 'grey'),
+  panel.grid.minor = element_line(color = 'black', linetype = 'dotted'),
+  panel.grid.major = element_line(color = 'black', size = 0.002)) +
+  ggtitle("Amaranthaceae: variación del % de polen encontrado") +
+  theme(plot.title = element_text(hjust = 0.5)) + 
+  theme(plot.title = element_text(face = "bold", size = 15)) +
+  theme(axis.text.y = element_text(size = 9), 
+          axis.title.y = element_text(size = 9))
+
+graph_Amaranthaceae
+
+```
+
+
+**Referencias**
+
+* [Reading data from excel files xlsx into r](http://www.sthda.com/english/wiki/reading-data-from-excel-files-xls-xlsx-into-r)
+* [Add column to dataframe in r](https://sparkbyexamples.com/r-programming/add-column-to-dataframe-in-r/)
+* [Rowsums function in r](https://www.statology.org/rowsums-function-in-r/)
+* [How to select columns in r](https://sparkbyexamples.com/r-programming/how-to-select-columns-in-r/)
+* [How to remove or delete rows with conditions](https://www.marsja.se/how-to-remove-delete-row-in-r-with-na-with-conditions-duplicated/)
+* [Change value to percentage of row in R](https://stackoverflow.com/questions/31638003/change-value-to-percentage-of-row-in-r)
+* [Remove column in R](https://sparkbyexamples.com/r-programming/remove-column-in-r/)
+* [Add column to dataframe in R](https://sparkbyexamples.com/r-programming/add-column-to-dataframe-in-r/)
+* [Reordering dataframe columns in R](http://www.sthda.com/english/wiki/reordering-data-frame-columns-in-r)
+* ["R difference" between rows](https://www.statology.org/r-difference-between-rows/)
+* [Convert matrix ot dataframe in R](https://www.geeksforgeeks.org/convert-matrix-to-dataframe-in-r/)
+* [Plotting time series with ggplot2](https://r-graph-gallery.com/279-plotting-time-series-with-ggplot2.html)
+* [Center Plot title in ggplot2](https://stackoverflow.com/questions/40675778/center-plot-title-in-ggplot2)
+* [How to Change Background Color in ggplot2?](https://www.r-bloggers.com/2022/07/how-to-change-background-color-in-ggplot2-3/)
+* [ggplot2 axis scales and transformations](http://www.sthda.com/english/wiki/ggplot2-axis-scales-and-transformations)
