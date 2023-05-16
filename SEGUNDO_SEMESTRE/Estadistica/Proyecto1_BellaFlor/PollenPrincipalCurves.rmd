@@ -1,0 +1,91 @@
+---
+title: "Principal Curves"
+output: html_document
+date: "2023-05-16"
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+**1. Cargar las librerías y datos**
+```{r Cargar las librerías y datos}
+# Loading
+library('dplyr') # Para manejo del dataframe
+library("readxl") # Para descarga de archivo xls
+library("tibble") # Para manejo de dataframe
+library("ggplot2")
+# xls files
+data <- read_excel("TB4_2.xlsx")
+
+# Lo convertimos a matriz
+#data.matrix(frame, rownames.force = NA)
+m = data.matrix(data, rownames.force = NA)
+
+```
+
+
+**2. Instalar la paquetería princurve-package**
+
+```{r Librería principal curves}
+#install.packages("princurve")
+library(princurve) %>% 
+
+```
+
+
+**3 Ejecutar principal curves a la base de datos**
+
+```{r Aplicar principal curves}
+# EJEMPLO
+# x <- runif(100,-1,1)
+# x <- cbind(x, x ^ 2 + rnorm(100, sd = 0.1))
+# fit <- principal_curve(x)
+# plot(fit)
+# lines(fit)
+# points(fit)
+# whiskers(x, fit$s)
+
+x = principal_curve(
+m,
+start = NULL,
+thresh = 0.001,
+maxit = 10,
+stretch = 2,
+smoother = c("smooth_spline", "lowess", "periodic_lowess"),
+approx_points = FALSE,
+trace = FALSE,
+plot_iterations = FALSE
+)
+
+# x = principal_curve(m)
+# 
+plot(x)
+lines(x)
+points(x)
+#whiskers(x, x$s)
+
+```
+
+
+```{r ejemplo}
+
+# project_to_curve
+x <- runif(100,-1,1)
+x <- cbind(x, x ^ 2 + rnorm(100, sd = 0.1))
+fit <- principal_curve(x)
+plot(fit)
+lines(fit)
+points(fit)
+whiskers(x, fit$s)
+plot(x)
+lines(x)
+points(x)
+
+
+project_to_curve(x, s, stretch = 2)
+
+```
