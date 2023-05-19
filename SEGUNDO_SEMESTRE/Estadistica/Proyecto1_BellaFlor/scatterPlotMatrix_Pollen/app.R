@@ -29,35 +29,13 @@ data <- read.csv("TB4_2.csv",  encoding = 'UTF-8')
   ui <- fluidPage(
     titlePanel("Matriz de gráficos de disperción por especie de polen"),
     
-    p("Las barras grises horizontal y vertical son usadas para determinar la dimensión de la matriz"),
+    mainPanel(
+      h6("Santiago Francisco Robles Tamayo"),
+      h6("Maestría en Ciencia de Datos, UNISON")
+    ),
     
-    # mainPanel(
-    #   h2("Controles:"),
-    #   h5("* Correlacion"), h5("Es la relación causal entre dos variables o datos 
-    #                           bivariados; el grado en que
-    #                           dos variables están relacionadas."),
-    #   h5("* Correlacion"), h5("Es la relación causal entre dos variables o datos 
-    #                           bivariados; el grado en que
-    #                           dos variables están relacionadas."),
-    #   h5("* Correlacion"), h5("Es la relación causal entre dos variables o datos 
-    #                           bivariados; el grado en que
-    #                           dos variables están relacionadas."),
-    #   h5("* Correlacion"), h5("Es la relación causal entre dos variables o datos 
-    #                           bivariados; el grado en que
-    #                           dos variables están relacionadas."),
-    #   h5("* Correlacion"), h5("Es la relación causal entre dos variables o datos 
-    #                           bivariados; el grado en que
-    #                           dos variables están relacionadas."),
-    #   h5("* Correlacion"), h5("Es la relación causal entre dos variables o datos 
-    #                           bivariados; el grado en que
-    #                           dos variables están relacionadas."),
-    #),
-      
-      # h2("Second level title"),
-      # h3("Third level title"),
-      # h4("Fourth level title"),
-      # h5("Fifth level title"),
-      # h6("Sixth level title")
+    p("Los controles de las barras grises, horizontal y vertical, pueden expandir la dimensión de la matriz o
+      seleccionar qué dimensiones visualizar.", ),
    
   
     scatterPlotMatrixOutput("spMatrix")
@@ -110,59 +88,3 @@ data <- read.csv("TB4_2.csv",  encoding = 'UTF-8')
 
 # Fuente https://cran.r-project.org/web/packages/scatterPlotMatrix/vignettes/introduction-to-scatterplotmatrix.html
 
-
-# Ejemplo ----
-
-# data2 <- read_excel("TB4_3.xlsx")
-# 
-# # arreglo de nombres por clave
-# # especies <- data2$cv
-# # names(especies) = data2$Planta
-
-
-# entidades_a_escoger <- catalogo_estatal$cve_ent[-c(1, 34:36)]
-# names(entidades_a_escoger) = catalogo_estatal$entidad[-c(1, 34:36)]
-
-# # Define UI for application that draws a histogram
-# ui <- fluidPage(
-# 
-#     # Application title
-#   titlePanel("Matriz de gráficos de correlación para especies de polen"),
-# 
-#   # selectInput("X", label = "Clave de especies",  choices = c(1:117)),
-#   #
-#   # selectInput("Y", label = "Especie",  choices = sort(names(data[,2:118]))),
-# 
-#   sliderInput(inputId = "range",
-#               label = "Especies",
-#               min = 1,
-#               max = 117,
-#               value = range(especies)),
-# 
-#   scatterPlotMatrixOutput(outputId = "spMatrix"),
-# 
-#   # selectInput("Y", label = "Egresos: Descripción de categoría",choices = names(EgreSon1321[,4:49])),
-#   #
-# 
-#   #
-#   # plotlyOutput(outputId = "distPlot")
-# 
-# 
-# )
-# 
-# server <- function(input, output) {
-# 
-#   output$spMatrix <- renderScatterPlotMatrix({
-# 
-#     renderScatterPlotMatrix(data)
-# 
-#   })
-# 
-#   observeEvent(input$range, {
-#     scatterPlotMatrix::setCategoricalColorScale("spMatrix", input$range)
-#   })
-# 
-# }
-# 
-# # Run the application
-# shinyApp(ui = ui, server = server)
