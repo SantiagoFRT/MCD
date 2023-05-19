@@ -1,31 +1,65 @@
-#
-# This is a Shiny web application. You can run the application by clicking
-# the 'Run App' button above.
-#
-# Find out more about building applications with Shiny here:
-#
-#    http://shiny.rstudio.com/
-#
+# Exposición de estadística: propuesta a estadística inferencial para el proyecto de Bella Flor
+# Santiago Francisco Robles Tamayo
+# Sábado 20 de mayo, 2023
 
+#install.packages('rsconnect')
+#library('rsconnect')
 library(shiny)
 library('dplyr') # Para manejo del dataframe
 library("readxl") # Para descarga de archivo xls
 library("tibble") # Para manejo de dataframe
 library("ggplot2")
 library(scatterPlotMatrix)
+
 # xls files
-data <- read_excel("TB4_2.xlsx")
+#data <- read_excel("TB4_2.xlsx")
+library(readr)
+data <- read.csv("TB4_2.csv",  encoding = 'UTF-8')
 
+# conectar aplicacion a shiny apps
 
+# library(rsconnect)
+# rsconnect::deployApp("app.R")
 
-if(interactive()) {
-  library(shiny)
-  library(scatterPlotMatrix)
+# if(interactive()) {
+#   library(shiny)
+#   library(scatterPlotMatrix)
   
 # UI ----
   ui <- fluidPage(
     titlePanel("Matriz de gráficos de disperción por especie de polen"),
+    
     p("Las barras grises horizontal y vertical son usadas para determinar la dimensión de la matriz"),
+    
+    # mainPanel(
+    #   h2("Controles:"),
+    #   h5("* Correlacion"), h5("Es la relación causal entre dos variables o datos 
+    #                           bivariados; el grado en que
+    #                           dos variables están relacionadas."),
+    #   h5("* Correlacion"), h5("Es la relación causal entre dos variables o datos 
+    #                           bivariados; el grado en que
+    #                           dos variables están relacionadas."),
+    #   h5("* Correlacion"), h5("Es la relación causal entre dos variables o datos 
+    #                           bivariados; el grado en que
+    #                           dos variables están relacionadas."),
+    #   h5("* Correlacion"), h5("Es la relación causal entre dos variables o datos 
+    #                           bivariados; el grado en que
+    #                           dos variables están relacionadas."),
+    #   h5("* Correlacion"), h5("Es la relación causal entre dos variables o datos 
+    #                           bivariados; el grado en que
+    #                           dos variables están relacionadas."),
+    #   h5("* Correlacion"), h5("Es la relación causal entre dos variables o datos 
+    #                           bivariados; el grado en que
+    #                           dos variables están relacionadas."),
+    #),
+      
+      # h2("Second level title"),
+      # h3("Third level title"),
+      # h4("Fourth level title"),
+      # h5("Fifth level title"),
+      # h6("Sixth level title")
+   
+  
     scatterPlotMatrixOutput("spMatrix")
   )
 
@@ -58,11 +92,19 @@ if(interactive()) {
     )
       
     })
+    
   }
 
 # ShinyApp ----
   shinyApp(ui, server)
-}
+
+
+
+
+
+
+
+
 
 
 
