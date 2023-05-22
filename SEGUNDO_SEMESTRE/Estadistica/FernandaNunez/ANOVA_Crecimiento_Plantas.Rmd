@@ -1,0 +1,171 @@
+---
+title: "ANOVA_Crecimiento_Plantas"
+author: "Santiago Francisco Robles Tamayo"
+date: "2023-05-21"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+**Cargar la base de datos**
+
+```{r datos}
+library(tidyr)
+library(readr)
+
+library(readxl)
+data <- read_excel("dif_semanal.xlsx")
+r_communis <- read_excel("dif_semanal_rcommunis.xlsx")
+v_farnesiana <- read_excel("dif_semanal_Vfarnesiana.xlsx")
+
+# total de diferencias de crecimiento por planta y tratamiento
+data = as.data.frame(data)
+
+# r communis, crecimeinto semana 4-3
+r_communis = r_communis[,c(1,2,3,6)]
+r_communis = as.data.frame(r_communis)
+r_communis
+
+# v. farnesiana, crecimiento semana 4-3
+v_farnesiana = v_farnesiana[,c(1,2,3,6)]
+v_farnesiana = as.data.frame(v_farnesiana)
+v_farnesiana
+
+```
+
+
+**Verificamos propiedades de la base de datos**
+
+*Diagrama de caja*: Este tipo de representación permite identificar de forma preliminar si existen asimetrías, datos atípicos o diferencia de varianzas. En este caso, en ambas especies de plantas, los 5 tratamientos no parecen seguir una distribución simétrica. En el gráfico *R. Communis*, el tratamiento con Jal tiene colas más largas y Jal con Inóculo tiene un valor atipico. En el gráfico *v.Farnesisna*, el tratamiento *Composta*, tiene un valor extremos. Habría que estudiar con detalle por si fuese necesario eliminarlos.
+
+```{r Diagrama de cajas}
+
+#R. Communis
+library(ggplot2)
+ggplot(data = r_communis, aes(x = Tratamiento, y = H4_H3, color = Tratamiento)) +
+    geom_boxplot() +
+  ggtitle("R. Communis")
+    theme_bw()
+
+```
+
+```{R Diagrama de cajas 2}
+#V. Farnesiana
+ggplot(data = v_farnesiana, aes(x = Tratamiento, y = H4_H3, color = Tratamiento)) +
+    geom_boxplot() +
+  ggtitle("V. Farnesiana") +
+    theme_bw()
+```
+
+
+
+
+**Verificar condiciones para un ANOVA**
+
+**Distribución normal de las observaciones**: La variable cuantitativa debe de distribuirse de forma normal en cada uno de los grupos. El estudio de normalidad puede hacerse de forma gráfica (qqplot) o con test de hipótesis.
+
+
+
+```{r condiciones de normalidad}
+
+# R. communis
+par(mfrow = c(3,2))
+qqnorm(r_communis[r_communis$Tratamiento == "C","H4_H3"], main = "C")
+qqline(r_communis[r_communis$Tratamiento == "C","H4_H3"])
+
+qqnorm(r_communis[r_communis$Tratamiento == "J","H4_H3"], main = "J")
+qqline(r_communis[r_communis$Tratamiento == "J","H4_H3"])
+
+qqnorm(r_communis[r_communis$Tratamiento == "JI","H4_H3"], main = "JI")
+qqline(r_communis[r_communis$Tratamiento == "JI","H4_H3"])
+
+qqnorm(r_communis[r_communis$Tratamiento == "CI","H4_H3"], main = "CI")
+qqline(r_communis[r_communis$Tratamiento == "CI","H4_H3"])
+
+qqnorm(r_communis[r_communis$Tratamiento == "SN","H4_H3"], main = "SN")
+qqline(r_communis[r_communis$Tratamiento == "SN","H4_H3"])
+
+
+
+
+# V. farnesiana
+par(mfrow = c(3,2))
+qqnorm(v_farnesiana[v_farnesiana$Tratamiento == "C","H4_H3"], main = "C")
+qqline(v_farnesiana[v_farnesiana$Tratamiento == "C","H4_H3"])
+
+qqnorm(v_farnesiana[v_farnesiana$Tratamiento == "J","H4_H3"], main = "J")
+qqline(v_farnesiana[v_farnesiana$Tratamiento == "J","H4_H3"])
+
+qqnorm(v_farnesiana[v_farnesiana$Tratamiento == "JI","H4_H3"], main = "JI")
+qqline(v_farnesiana[v_farnesiana$Tratamiento == "JI","H4_H3"])
+
+qqnorm(v_farnesiana[v_farnesiana$Tratamiento == "CI","H4_H3"], main = "CI")
+qqline(v_farnesiana[v_farnesiana$Tratamiento == "CI","H4_H3"])
+
+qqnorm(v_farnesiana[v_farnesiana$Tratamiento == "SN","H4_H3"], main = "SN")
+qqline(v_farnesiana[v_farnesiana$Tratamiento == "SN","H4_H3"])
+
+
+
+
+```
+
+
+
+Dado que los grupos tienen mas de 50 eventos se emplea el test de Kolmogorov-Smirnov con la corrección de Lilliefors. La función en R se llama lillie.test() y se encuentra en el paquete nortest. Si fuesen menos de 50 eventos por grupo se emplearía el test Shapiro-Wilk.
+
+
+
+```{r Kolmogorov-Smirnov}
+
+library(nortest)
+
+# R. communis
+by(data = r_communis,INDICES = r_communis$Tratamiento,FUN = function(x){ lillie.test(x$H4_H3)})
+
+
+# v. farnesiana
+by(data = v_farnesiana,INDICES = v_farnesiana$Tratamiento,FUN = function(x){ lillie.test(x$H4_H3)})
+
+```
+
+**Shapiro wilk test**
+
+```{r Shapiro-wilk}
+
+# R. Communis
+
+shapiro.test(r_communis$H4_H3)
+
+#V. Farnesiana
+shapiro.test(v_farnesiana$H4_H3)
+```
+
+**Análisis de varianza (ANOVA)**
+```{r ANOVA}
+
+anova_r_communis <- aov(r_communis$H4_H3 ~ r_communis$Tratamiento)
+summary(anova_r_communis)
+
+
+
+anova_v_farnesiana <- aov(v_farnesiana$H4_H3 ~ v_farnesiana$Tratamiento)
+summary(anova_v_farnesiana)
+
+```
+
+Dado que el p-value es inferior a 0.05, hay evidencias suficientes para considerar que al menos dos medias son distintas.
+
+
+```{r Grafica ANOVA}
+
+plot(anova_r_communis)
+plot(anova_v_farnesiana)
+
+```
+
+**Referencias**
+* https://rpubs.com/Joaquin_AR/219148
+* https://rpubs.com/RubenOrtiz/192363
