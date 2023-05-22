@@ -1,5 +1,5 @@
 ---
-title: "ANOVA_Crecimiento_Plantas"
+title: "ANOVA para el crecimiento de plantas, por especie y tratamiento, entre la semanas 9 y 10"
 author: "Santiago Francisco Robles Tamayo"
 date: "2023-05-21"
 output: html_document
@@ -9,62 +9,81 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+**Planteamiento del problema**
+
+1. Comparar el estatus micorrícico entre las plantas establecidas en el jal y las mismas especies de plantas en suelo natural.
+2. Evaluar la influencia del inóculo de micorrizas en dos especies tolerantes a las condiciones del jal de Nacozari a diferentes tratamientos.
+
+
+**Objetivo del proyecto**
+
+Hacer un análisis de varianza del crecimiento de las plantas entre las semanas 9 y 10, por tratamiento y especie.
+
+**¿Qué es un ANOVA?**
+
+* La técnica de análisis de varianza (ANOVA), también conocida como análisis factorial y desarrollada por Fisher en 1930, constituye la herramienta básica para el estudio del efecto de uno o más factores (cada uno con dos o más niveles) sobre la media de una variable continua.
+
+* Se hace uso de esta prueba estadística cuando se desean comparar las medias de dos o más grupos. Esta técnica puede generalizarse también para estudiar los posibles efectos de los factores sobre la varianza de una variable.
+
+* Ho = la media de la variable estudiada es la misma en los diferentes grupos.
+
+* H1 = al menos dos medias difieren de forma significativa
+
+
+
 **Cargar la base de datos**
 
 ```{r datos}
 library(tidyr)
 library(readr)
-
 library(readxl)
+
 data <- read_excel("dif_semanal.xlsx")
-r_communis <- read_excel("dif_semanal_rcommunis.xlsx")
-v_farnesiana <- read_excel("dif_semanal_Vfarnesiana.xlsx")
+r_communis <- read_excel("dif_semanal_rcommunis_2.xlsx")
+v_farnesiana <- read_excel("dif_semanal_Vfarnesiana_2.xlsx")
 
 # total de diferencias de crecimiento por planta y tratamiento
 data = as.data.frame(data)
 
 # r communis, crecimeinto semana 4-3
-r_communis = r_communis[,c(1,2,3,6)]
 r_communis = as.data.frame(r_communis)
 r_communis
 
 # v. farnesiana, crecimiento semana 4-3
-v_farnesiana = v_farnesiana[,c(1,2,3,6)]
 v_farnesiana = as.data.frame(v_farnesiana)
 v_farnesiana
 
 ```
 
 
-**Verificamos propiedades de la base de datos**
+**Verificar condiciones para un ANOVA**
 
-*Diagrama de caja*: Este tipo de representación permite identificar de forma preliminar si existen asimetrías, datos atípicos o diferencia de varianzas. En este caso, en ambas especies de plantas, los 5 tratamientos no parecen seguir una distribución simétrica. En el gráfico *R. Communis*, el tratamiento con Jal tiene colas más largas y Jal con Inóculo tiene un valor atipico. En el gráfico *v.Farnesisna*, el tratamiento *Composta*, tiene un valor extremos. Habría que estudiar con detalle por si fuese necesario eliminarlos.
+*Diagrama de caja*: Este tipo de representación permite identificar de forma preliminar si existen asimetrías, datos atípicos o diferencia de varianzas. En este caso, en ambas especies de plantas, los 5 tratamientos no parecen seguir una distribución simétrica. En el gráfico *R. Communis*, los tratamiento Jal y Suelo Natural (SN) tienen un valores atípicos; en el gráfico *v.Farnesisna*, los tratamientos *Composta con inóculo*, *Jal* y *Jal con inóculo* también muestran valores atípicos.
 
-```{r Diagrama de cajas}
+
+```{r Diagrama de cajas, results='hide'}
 
 #R. Communis
 library(ggplot2)
-ggplot(data = r_communis, aes(x = Tratamiento, y = H4_H3, color = Tratamiento)) +
+ggplot(data = r_communis, aes(x = Tratamiento, y = H10_H9, color = Tratamiento)) +
     geom_boxplot() +
   ggtitle("R. Communis")
     theme_bw()
 
 ```
 
-```{R Diagrama de cajas 2}
+```{R Diagrama de cajas 2, results='hide'}
+
 #V. Farnesiana
-ggplot(data = v_farnesiana, aes(x = Tratamiento, y = H4_H3, color = Tratamiento)) +
+ggplot(data = v_farnesiana, aes(x = Tratamiento, y = H10_H9, color = Tratamiento)) +
     geom_boxplot() +
   ggtitle("V. Farnesiana") +
     theme_bw()
+
 ```
 
 
-
-
-**Verificar condiciones para un ANOVA**
-
-**Distribución normal de las observaciones**: La variable cuantitativa debe de distribuirse de forma normal en cada uno de los grupos. El estudio de normalidad puede hacerse de forma gráfica (qqplot) o con test de hipótesis.
+**Distribución normal de las observaciones**: La variable cuantitativa debe de distribuirse de forma normal en cada uno de los grupos. El estudio de normalidad puede hacerse de forma gráfica (qqplot) o con prueba de hipótesis.
 
 
 
@@ -72,91 +91,98 @@ ggplot(data = v_farnesiana, aes(x = Tratamiento, y = H4_H3, color = Tratamiento)
 
 # R. communis
 par(mfrow = c(3,2))
-qqnorm(r_communis[r_communis$Tratamiento == "C","H4_H3"], main = "C")
-qqline(r_communis[r_communis$Tratamiento == "C","H4_H3"])
+qqnorm(r_communis[r_communis$Tratamiento == "C","H10_H9"], main = "C")
+qqline(r_communis[r_communis$Tratamiento == "C","H10_H9"])
 
-qqnorm(r_communis[r_communis$Tratamiento == "J","H4_H3"], main = "J")
-qqline(r_communis[r_communis$Tratamiento == "J","H4_H3"])
+qqnorm(r_communis[r_communis$Tratamiento == "J","H10_H9"], main = "J")
+qqline(r_communis[r_communis$Tratamiento == "J","H10_H9"])
 
-qqnorm(r_communis[r_communis$Tratamiento == "JI","H4_H3"], main = "JI")
-qqline(r_communis[r_communis$Tratamiento == "JI","H4_H3"])
+qqnorm(r_communis[r_communis$Tratamiento == "JI","H10_H9"], main = "JI")
+qqline(r_communis[r_communis$Tratamiento == "JI","H10_H9"])
 
-qqnorm(r_communis[r_communis$Tratamiento == "CI","H4_H3"], main = "CI")
-qqline(r_communis[r_communis$Tratamiento == "CI","H4_H3"])
+qqnorm(r_communis[r_communis$Tratamiento == "CI","H10_H9"], main = "CI")
+qqline(r_communis[r_communis$Tratamiento == "CI","H10_H9"])
 
-qqnorm(r_communis[r_communis$Tratamiento == "SN","H4_H3"], main = "SN")
-qqline(r_communis[r_communis$Tratamiento == "SN","H4_H3"])
+qqnorm(r_communis[r_communis$Tratamiento == "SN","H10_H9"], main = "SN")
+qqline(r_communis[r_communis$Tratamiento == "SN","H10_H9"])
 
+```
 
-
+```{r condiciones de normalidad 2}
 
 # V. farnesiana
 par(mfrow = c(3,2))
-qqnorm(v_farnesiana[v_farnesiana$Tratamiento == "C","H4_H3"], main = "C")
-qqline(v_farnesiana[v_farnesiana$Tratamiento == "C","H4_H3"])
+qqnorm(v_farnesiana[v_farnesiana$Tratamiento == "C","H10_H9"], main = "C")
+qqline(v_farnesiana[v_farnesiana$Tratamiento == "C","H10_H9"])
 
-qqnorm(v_farnesiana[v_farnesiana$Tratamiento == "J","H4_H3"], main = "J")
-qqline(v_farnesiana[v_farnesiana$Tratamiento == "J","H4_H3"])
+qqnorm(v_farnesiana[v_farnesiana$Tratamiento == "J","H10_H9"], main = "J")
+qqline(v_farnesiana[v_farnesiana$Tratamiento == "J","H10_H9"])
 
-qqnorm(v_farnesiana[v_farnesiana$Tratamiento == "JI","H4_H3"], main = "JI")
-qqline(v_farnesiana[v_farnesiana$Tratamiento == "JI","H4_H3"])
+qqnorm(v_farnesiana[v_farnesiana$Tratamiento == "JI","H10_H9"], main = "JI")
+qqline(v_farnesiana[v_farnesiana$Tratamiento == "JI","H10_H9"])
 
-qqnorm(v_farnesiana[v_farnesiana$Tratamiento == "CI","H4_H3"], main = "CI")
-qqline(v_farnesiana[v_farnesiana$Tratamiento == "CI","H4_H3"])
+qqnorm(v_farnesiana[v_farnesiana$Tratamiento == "CI","H10_H9"], main = "CI")
+qqline(v_farnesiana[v_farnesiana$Tratamiento == "CI","H10_H9"])
 
-qqnorm(v_farnesiana[v_farnesiana$Tratamiento == "SN","H4_H3"], main = "SN")
-qqline(v_farnesiana[v_farnesiana$Tratamiento == "SN","H4_H3"])
-
-
+qqnorm(v_farnesiana[v_farnesiana$Tratamiento == "SN","H10_H9"], main = "SN")
+qqline(v_farnesiana[v_farnesiana$Tratamiento == "SN","H10_H9"])
 
 
 ```
 
 
 
-Dado que los grupos tienen mas de 50 eventos se emplea el test de Kolmogorov-Smirnov con la corrección de Lilliefors. La función en R se llama lillie.test() y se encuentra en el paquete nortest. Si fuesen menos de 50 eventos por grupo se emplearía el test Shapiro-Wilk.
+Dado que los grupos tienen 50 eventos, se emplea el test de Kolmogorov-Smirnov con la corrección de Lilliefors. La función en R se llama lillie.test() y se encuentra en el paquete nortest. Si fuesen menos de 50 eventos por grupo, se emplearía el test Shapiro-Wilk.
 
+**Prueba Kolmogorov-Smirnov**
 
+* Se aplica para conocer la falta de normalidad.
+* Ho = La muestra no tiene una distribución normal
+* H1 = La muestra tiene una distribución normal
 
 ```{r Kolmogorov-Smirnov}
 
 library(nortest)
 
 # R. communis
-by(data = r_communis,INDICES = r_communis$Tratamiento,FUN = function(x){ lillie.test(x$H4_H3)})
+#by(data = r_communis,INDICES = r_communis$Tratamiento,FUN = function(x){ lillie.test(x$H10_H9)})
 
 
 # v. farnesiana
-by(data = v_farnesiana,INDICES = v_farnesiana$Tratamiento,FUN = function(x){ lillie.test(x$H4_H3)})
+by(data = v_farnesiana,INDICES = v_farnesiana$Tratamiento,FUN = function(x){ lillie.test(x$H10_H9)})
 
 ```
 
-**Shapiro wilk test**
+**Prueba Shapiro wilk**
+
+* Se usa para contrastar normalidad de un conjunto de datos.
+* Ho = La muestra tiene una distribución normal
+* H1 = La muestra no tiene una distribución normal
 
 ```{r Shapiro-wilk}
 
 # R. Communis
 
-shapiro.test(r_communis$H4_H3)
+shapiro.test(r_communis$H10_H9)
 
 #V. Farnesiana
-shapiro.test(v_farnesiana$H4_H3)
+shapiro.test(v_farnesiana$H10_H9)
 ```
 
 **Análisis de varianza (ANOVA)**
 ```{r ANOVA}
 
-anova_r_communis <- aov(r_communis$H4_H3 ~ r_communis$Tratamiento)
+anova_r_communis <- aov(r_communis$H10_H9 ~ r_communis$Tratamiento)
 summary(anova_r_communis)
 
 
 
-anova_v_farnesiana <- aov(v_farnesiana$H4_H3 ~ v_farnesiana$Tratamiento)
+anova_v_farnesiana <- aov(v_farnesiana$H10_H9 ~ v_farnesiana$Tratamiento)
 summary(anova_v_farnesiana)
 
-```
 
-Dado que el p-value es inferior a 0.05, hay evidencias suficientes para considerar que al menos dos medias son distintas.
+
+```
 
 
 ```{r Grafica ANOVA}
@@ -166,6 +192,43 @@ plot(anova_v_farnesiana)
 
 ```
 
+
+
+Dado que el p-value es inferior a 0.05, hay evidencias suficientes para considerar que al menos dos medias son distintas. Por lo tanto, podemos aplicar una prueba pos-hoc, como la de Tukey.
+
+
+**Tukey’s test**
+
+* Es el ajuste recomendado cuando el número de grupos a comparar es mayor de 6 y el diseño es equilibrado (mismo número de observaciones por grupo).
+
+
+
+```{r Tukey}
+
+# R. Communis
+
+TukeyHSD(anova_r_communis)
+
+#V. Farnesiana
+TukeyHSD(anova_v_farnesiana)
+
+```
+
+```{r Tukey plots}
+
+
+# R. Communis
+plot(TukeyHSD(anova_r_communis))
+
+# V. Farnesiana
+plot(TukeyHSD(anova_v_farnesiana))
+
+```
+
 **Referencias**
-* https://rpubs.com/Joaquin_AR/219148
-* https://rpubs.com/RubenOrtiz/192363
+
+* [ANOVA análisis de varianza para comparar múltiples medias](https://rpubs.com/Joaquin_AR/219148)
+* [R markdown cookbook, Chunk options, Hide code](https://bookdown.org/yihui/rmarkdown-cookbook/hide-one.html)
+* [Prueba de Kolmogórov-Smirnov](https://es.wikipedia.org/wiki/Prueba_de_Kolmog%C3%B3rov-Smirnov)
+* [PRUEBA DE SHAPIRO-WILK](https://rpubs.com/RubenOrtiz/192363)
+* [Prueba de Shapiro–Wilk](https://es.wikipedia.org/wiki/Prueba_de_Shapiro%E2%80%93Wilk)
