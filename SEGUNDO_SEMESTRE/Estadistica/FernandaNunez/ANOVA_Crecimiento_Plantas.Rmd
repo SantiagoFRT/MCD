@@ -1,7 +1,7 @@
 ---
 title: "ANOVA para el crecimiento de plantas, por especie y tratamiento, entre la semanas 9 y 10"
 author: "Santiago Francisco Robles Tamayo"
-date: "2023-05-21"
+date: "2023-05-26"
 output: html_document
 ---
 
@@ -58,7 +58,7 @@ v_farnesiana
 
 **Verificar condiciones para un ANOVA**
 
-*Diagrama de caja*: Este tipo de representación permite identificar de forma preliminar si existen asimetrías, datos atípicos o diferencia de varianzas. En este caso, en ambas especies de plantas, los 5 tratamientos no parecen seguir una distribución simétrica. En el gráfico *R. Communis*, los tratamiento Jal y Suelo Natural (SN) tienen un valores atípicos; en el gráfico *v.Farnesisna*, los tratamientos *Composta con inóculo*, *Jal* y *Jal con inóculo* también muestran valores atípicos.
+* *Diagrama de caja*: Este tipo de representación permite identificar de forma preliminar si existen asimetrías, datos atípicos o diferencia de varianzas. En este caso, los 5 tratamientos no parecen seguir una distribución simétrica para ambas especies de plantas. En el gráfico *R. Communis*, el tratamiento Suelo Natural (SN) tiene un valor atípico<; en el gráfico *v.Farnesisna*, los tratamientos  *Composta*, *Composta con inóculo* y *Jal con inóculo* también muestran valores atípicos.
 
 
 ```{r Diagrama de cajas, results='hide'}
@@ -83,8 +83,7 @@ ggplot(data = v_farnesiana, aes(x = Tratamiento, y = H10_H9, color = Tratamiento
 ```
 
 
-**Distribución normal de las observaciones**: La variable cuantitativa debe de distribuirse de forma normal en cada uno de los grupos. El estudio de normalidad puede hacerse de forma gráfica (qqplot) o con prueba de hipótesis.
-
+* **Distribución normal de las observaciones**: La variable cuantitativa debe de distribuirse de forma normal en cada uno de los grupos. El estudio de normalidad puede hacerse de forma gráfica (qqplot) o con prueba de hipótesis. **Si las dos distribuciones que estamos comparando son exactamente iguales, entonces los puntos en el Q-Qplot mostrarán una linea recta donde x=y**.
 
 
 ```{r condiciones de normalidad}
@@ -132,7 +131,8 @@ qqline(v_farnesiana[v_farnesiana$Tratamiento == "SN","H10_H9"])
 
 
 
-Dado que los grupos tienen 50 eventos, se emplea el test de Kolmogorov-Smirnov con la corrección de Lilliefors. La función en R se llama lillie.test() y se encuentra en el paquete nortest. Si fuesen menos de 50 eventos por grupo, se emplearía el test Shapiro-Wilk.
+Dado que los grupos tienen menos 50 eventos, se emplea el test Shapiro-Wilk. Si fuesen más de 50 eventos por grupo, se emplearía el test de Kolmogorov-Smirnov,  con la corrección de Lilliefors que se encuentra en el paquete nortest.
+
 
 **Prueba Kolmogorov-Smirnov**
 
@@ -149,7 +149,7 @@ library(nortest)
 
 
 # v. farnesiana
-by(data = v_farnesiana,INDICES = v_farnesiana$Tratamiento,FUN = function(x){ lillie.test(x$H10_H9)})
+#by(data = v_farnesiana,INDICES = v_farnesiana$Tratamiento,FUN = function(x){ lillie.test(x$H10_H9)})
 
 ```
 
@@ -169,7 +169,38 @@ shapiro.test(r_communis$H10_H9)
 shapiro.test(v_farnesiana$H10_H9)
 ```
 
+**Test de Levene**
+
+* También puede corroborarse normalidad de las varianzas. El supuesto de homogeneidad de varianzas, también conocido como supuesto de homocedasticidad, considera que la varianza es constante (no varía) en los diferentes niveles de un factor, es decir, entre diferentes grupos.
+
+* Una de las pruebas para corroborar este supuesto es Levene. Se caracteriza, además de por poder comparar 2 o más poblaciones, por permitir elegir entre diferentes estadísticos de centralidad :mediana (por defecto), media, media truncada. Esto es importante a la hora de contrastar la homocedasticidad dependiendo de si los grupos se distribuyen de forma normal o no.
+
+* Ho = las varianzas poblacionales son iguales (llamado homogeneidad de varianza u homocedasticidad)
+* H1 = hay una diferencia entre las variaciones en la población
+
+
+
+```{r Test de Levene}
+# leveneTest(y = iris$Petal.Length, group = iris$Species, center = "median")
+
+# R.Communis
+library(car)
+leveneTest(y = r_communis$H10_H9, group = r_communis$Tratamiento, center = "median")
+
+# V. Farnesiana
+leveneTest(y = v_farnesiana$H10_H9, group = v_farnesiana$Tratamiento, center = "median")
+
+
+```
+
 **Análisis de varianza (ANOVA)**
+
+* Se hace uso de esta prueba estadística cuando se desean comparar las medias de dos o más grupos. Esta técnica puede generalizarse también para estudiar los posibles efectos de los factores sobre la varianza de una variable.
+
+* Ho = la media de la variable estudiada es la misma en los diferentes grupos.
+
+* H1 = al menos dos medias difieren de forma significativa
+
 ```{r ANOVA}
 
 anova_r_communis <- aov(r_communis$H10_H9 ~ r_communis$Tratamiento)
@@ -194,10 +225,12 @@ plot(anova_v_farnesiana)
 
 
 
-Dado que el p-value es inferior a 0.05, hay evidencias suficientes para considerar que al menos dos medias son distintas. Por lo tanto, podemos aplicar una prueba pos-hoc, como la de Tukey.
+Dado que el p-value es inferior a 0.05, hay evidencias suficientes para considerar que las medias de crecimiento en los diferentes tratamientos son iguales, tanto en la plantas R. Communis como V. Farnesiana. Por lo tanto, podemos aplicar una prueba pos-hoc, como la de Tukey.
 
 
 **Tukey’s test**
+
+* Dado que no rechazamos la hipótesis nula en el ANOVA, puede omitirse hacer la prueba de Tukey.
 
 * Es el ajuste recomendado cuando el número de grupos a comparar es mayor de 6 y el diseño es equilibrado (mismo número de observaciones por grupo).
 
@@ -227,8 +260,10 @@ plot(TukeyHSD(anova_v_farnesiana))
 
 **Referencias**
 
+* [Análisis de la homogeneidad de varianza (homocedasticidad)](https://rpubs.com/Joaquin_AR/218466)
 * [ANOVA análisis de varianza para comparar múltiples medias](https://rpubs.com/Joaquin_AR/219148)
-* [R markdown cookbook, Chunk options, Hide code](https://bookdown.org/yihui/rmarkdown-cookbook/hide-one.html)
 * [Prueba de Kolmogórov-Smirnov](https://es.wikipedia.org/wiki/Prueba_de_Kolmog%C3%B3rov-Smirnov)
 * [PRUEBA DE SHAPIRO-WILK](https://rpubs.com/RubenOrtiz/192363)
 * [Prueba de Shapiro–Wilk](https://es.wikipedia.org/wiki/Prueba_de_Shapiro%E2%80%93Wilk)
+* [QQplots explained](https://towardsdatascience.com/q-q-plots-explained-5aa8495426c0)
+* [R markdown cookbook, Chunk options, Hide code](https://bookdown.org/yihui/rmarkdown-cookbook/hide-one.html)
