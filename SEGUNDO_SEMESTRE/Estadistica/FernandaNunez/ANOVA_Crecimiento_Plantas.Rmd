@@ -2,11 +2,14 @@
 title: "ANOVA para el crecimiento de plantas, por especie y tratamiento, entre la semanas 9 y 10"
 author: "Santiago Francisco Robles Tamayo"
 date: "2023-05-26"
-output: html_document
+output:
+  prettydoc::html_pretty:
+      theme: architect
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(prettydoc)
 ```
 
 **Planteamiento del problema**
@@ -58,7 +61,7 @@ v_farnesiana
 
 **Verificar condiciones para un ANOVA**
 
-* *Diagrama de caja*: Este tipo de representación permite identificar de forma preliminar si existen asimetrías, datos atípicos o diferencia de varianzas. En este caso, los 5 tratamientos no parecen seguir una distribución simétrica para ambas especies de plantas. En el gráfico *R. Communis*, el tratamiento Suelo Natural (SN) tiene un valor atípico<; en el gráfico *v.Farnesisna*, los tratamientos  *Composta*, *Composta con inóculo* y *Jal con inóculo* también muestran valores atípicos.
+* **Diagrama de caja**: Este tipo de representación permite identificar de forma preliminar si existen asimetrías, datos atípicos o diferencia de varianzas. En este caso, los 5 tratamientos no parecen seguir una distribución simétrica para ambas especies de plantas. En el gráfico *R. Communis*, el tratamiento Suelo Natural (SN) tiene un valor atípico<; en el gráfico *v.Farnesisna*, los tratamientos  *Composta*, *Composta con inóculo* y *Jal con inóculo* también muestran valores atípicos.
 
 
 ```{r Diagrama de cajas, results='hide'}
