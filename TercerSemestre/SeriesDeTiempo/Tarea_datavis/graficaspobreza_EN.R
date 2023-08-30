@@ -24,14 +24,14 @@ library(janitor)
 library(fmsb)
 
 
-# Datos ----
-pobreza2016_2022 <- read_csv("pobreza2016_2022.csv", 
+# Data ----
+poorpop2016_2022 <- read_csv("poorpop2016_2022.csv", 
                              locale = locale(encoding = "WINDOWS-1252"))
 # Grafico de líneas ----
 ### Poblacion en situacion de pobreza ----
 #### Sonora ----
 
-pobpobre <- pobreza2016_2022 %>% 
+pobpobre <- poorpop2016_2022 %>% 
   filter(entidad == "Sonora", indicador== "Población en situación de pobreza")
 
 
@@ -52,24 +52,46 @@ pobpobre_graph
                          
 #### Mexico ----
 
-pobpobre_Mex <- pobreza2016_2022 %>% 
+# graph_Abies <- ggplot(data8, aes(x=Profundidad1, y=Abies)) +
+#   geom_line(color= "cornflowerblue", size=1) +
+#   ylab("Abies (variación del % de polen encontrado)") +
+#   xlab ("Profundidad (cm)") +
+#   scale_x_continuous(name= "Profundidad (cm)", breaks= c(0, 50, 100, 150, 200, 250, 300)) +
+#   scale_y_continuous(name= "Abies (variación del % de polen encontrado)", breaks= waiver()) +
+#   theme(panel.background = element_rect(fill = 'white', color = 'grey'),
+#         panel.grid.minor = element_line(color = 'black', linetype = 'dotted'),
+#         panel.grid.major = element_line(color = 'black', size = 0.001)) +
+#   ggtitle("Abies: variación del % de polen encontrado") +
+#   theme(plot.title = element_text(hjust = 0.5)) +
+#   theme(plot.title = element_text(face = "bold", size = 15)) +
+#   theme(axis.text.y = element_text(size = 9),
+#         axis.title.y = element_text(size = 9))
+# 
+# graph_Abies
+
+poorpop_Mex <- poorpop2016_2022 %>% 
   filter(entidad == "Nacional", indicador== "Población en situación de pobreza")
 
 
-pobpobre_graph_Mex <- ggplot(pobpobre_Mex, aes(x= Año, y= porcentaje)) +
-  geom_line() + 
-  scale_fill_brewer(palette = "Set1") +
-  theme(legend.position="none") +
+poorpop_graph_Mex <- ggplot(poorpop_Mex, aes(x= Año, y= porcentaje)) +
+  geom_line(size=1.2, color= "blue") + 
+  # scale_fill_brewer(palette = "Set1") +
+  theme_minimal()+
+  theme(axis.text = element_text(size = 16),
+        axis.title = element_text(size = 20),
+        plot.title = element_text(size = 30),
+        panel.grid.minor = element_line(color = 'black', linetype = 'dotted'),
+        panel.grid.major = element_line(color = 'black', size = 0.001)) +
   labs(y= "Percentage", x = "Year") +
-  ylim(10, 60) +
-  ggtitle("Percentage of people living in poverty in Mexico: 2016-2017")
+  ylim(10, 50) +
+  ggtitle("Percentage of people living in poverty in Mexico: 2016-2022")
 
 
-pobpobre_graph_Mex
+poorpop_graph_Mex
 
 ### Poblacion en situacion de pobreza extrema ----
 #### Sonora ----
-pobpobreExt <- pobreza2016_2022 %>% 
+pobpobreExt <- poorpop2016_2022 %>% 
   filter(entidad == "Sonora", indicador== "Población en situación de pobreza extrema")
 
 
@@ -87,7 +109,7 @@ pobpobreExt_graph
 
 #### Mexico ----
 
-pobpobreExt_Mex <- pobreza2016_2022 %>% 
+pobpobreExt_Mex <- poorpop2016_2022 %>% 
   filter(entidad == "Nacional", indicador== "Población en situación de pobreza extrema")
 
 
@@ -107,7 +129,7 @@ pobpobreExt_graph_Mex
 # Treemap ----
 ### Poblacion en situacion de pobreza ----
 
-treemap_pobreza_data <- pobreza2016_2022 %>% 
+treemap_pobreza_data <- poorpop2016_2022 %>% 
   filter(indicador== "Población en situación de pobreza") %>% 
   mutate(ent = NULL, tipo= NULL, porcentaje= NULL)
 
@@ -180,7 +202,7 @@ hcl_palettes("qualitative", plot = TRUE)
 
 ### Población en situación de pobreza extrema ----
 
-treemap_pobrezaExt_data <- pobreza2016_2022 %>% 
+treemap_pobrezaExt_data <- poorpop2016_2022 %>% 
   filter(indicador== "Población en situación de pobreza extrema") %>% 
   mutate(ent = NULL, tipo= NULL, porcentaje= NULL)
 
@@ -229,7 +251,7 @@ hcl_palettes("qualitative", plot = TRUE)
 # Barplot ----
 ### Poblacion en situación de pobreza en la frontera norte ----
 
-pobpobre_norte <- pobreza2016_2022 %>% 
+poorpop_north <- poorpop2016_2022 %>% 
   # group_by(anio, entidad, indicador, miles_de_personas) %>% 
   filter(entidad == "Baja California" |
                 entidad == "Chihuahua" |
@@ -242,20 +264,27 @@ pobpobre_norte <- pobreza2016_2022 %>%
 
 
 
-pobpobre_norte_graph <- ggplot(pobpobre_norte, 
-                               aes(entidad, porcentaje, fill=Año, group= Año)) +
+poorpop_north_graph <- ggplot(data = poorpop_north, 
+                               aes(x= entidad, y= porcentaje, fill=Año, group= Año)) +
   geom_col(position = "dodge") +
+  theme_minimal() + # add theme 
+  theme(axis.text = element_text(size = 15), # axis text size
+        axis.title = element_text(size = 18), # axis tittle size
+        plot.title = element_text(size = 20), # plot tittle size
+        legend.key.height= unit(1, 'cm'),
+        legend.key.width= unit(1, 'cm'),
+        legend.text = element_text(size=15)) +
   ylim(0, 40) +
-  labs(y= "Percentage", x = "Year", fill= "Year") +
+  labs(y= "Percentage", x = "State", fill= "Year") +
   labs(title="People living in poverty in the Northern Border States of Mexico: 2016-2022")
 
 
-pobpobre_norte_graph
+poorpop_north_graph
 
 
 ### Población en situación de pobreza extrema ----
 
-pobpobreExt_norte <- pobreza2016_2022 %>% 
+pobpobreExt_norte <- poorpop2016_2022 %>% 
   # group_by(anio, entidad, indicador, miles_de_personas) %>% 
   filter(entidad == "Baja California" |
            entidad == "Chihuahua" |
@@ -281,7 +310,7 @@ pobpobreExt_norte_graph
 # Correlacion de Pearson ----
 ##### Sonora-----
  
-pobpobre_Son_16_22 <- pobreza2016_2022 %>% 
+pobpobre_Son_16_22 <- poorpop2016_2022 %>% 
   filter(entidad == "Sonora") %>% 
   mutate(ent = NULL, entidad = NULL, tipo = NULL, porcentaje= NULL) %>% 
   pivot_wider(values_from= 'miles_de_personas', names_from='indicador') %>% 
@@ -305,7 +334,7 @@ corr_pobpobre_Son_16_22_ggcorr
 
 #### México ----
 
-Mex_pobreza_16_22 <- pobreza2016_2022 %>% 
+Mex_pobreza_16_22 <- poorpop2016_2022 %>% 
   filter(entidad == "Nacional") %>% 
   mutate(ent = NULL, entidad = NULL, tipo = NULL, porcentaje= NULL) %>% 
   pivot_wider(values_from= 'miles_de_personas', names_from='indicador') %>% 
@@ -322,7 +351,7 @@ corr_Mex_pobreza_16_22
 # Spider graph ----
 #### Sonora ----
 
-carencias_Son_1622_wider <-  pobreza2016_2022 %>% 
+carencias_Son_1622_wider <-  poorpop2016_2022 %>% 
   filter(entidad == "Sonora", indicador== "Carencia por acceso a los servicios de salud" |
                               indicador== "Carencia por acceso a la seguridad social" |
                              indicador== "Carencia por calidad y espacios de la vivienda" |
@@ -372,7 +401,7 @@ legend("topright",
 
 #### Mexico ----
 
-carencias_Mex_1622_wider <-  pobreza2016_2022 %>% 
+carencias_Mex_1622_wider <-  poorpop2016_2022 %>% 
   filter(entidad == "Nacional", indicador== "Carencia por acceso a los servicios de salud" |
            indicador== "Carencia por acceso a la seguridad social" |
            indicador== "Carencia por calidad y espacios de la vivienda" |
