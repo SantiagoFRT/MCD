@@ -77,8 +77,8 @@ poorpop_graph_Mex <- ggplot(poorpop_Mex, aes(x= Año, y= porcentaje)) +
   geom_line(size=1.2, color= "blue") + 
   # scale_fill_brewer(palette = "Set1") +
   theme_minimal()+
-  theme(axis.text = element_text(size = 16),
-        axis.title = element_text(size = 20),
+  theme(axis.text = element_text(size = 20),
+        axis.title = element_text(size = 25),
         plot.title = element_text(size = 30),
         panel.grid.minor = element_line(color = 'black', linetype = 'dotted'),
         panel.grid.major = element_line(color = 'black', size = 0.001)) +
@@ -262,23 +262,25 @@ poorpop_north <- poorpop2016_2022 %>%
            
          indicador== "Población en situación de pobreza")
 
-
+paleta <- RColorBrewer::brewer.pal(4, "BrBG")
 
 poorpop_north_graph <- ggplot(data = poorpop_north, 
                                aes(x= entidad, y= porcentaje, fill=Año, group= Año)) +
   geom_col(position = "dodge") +
+  scale_fill_continuous(breaks= c(2016, 2018, 2020, 2022)) +
   theme_minimal() + # add theme 
-  theme(axis.text = element_text(size = 15), # axis text size
-        axis.title = element_text(size = 18), # axis tittle size
-        plot.title = element_text(size = 20), # plot tittle size
-        legend.key.height= unit(1, 'cm'),
-        legend.key.width= unit(1, 'cm'),
-        legend.text = element_text(size=15)) +
-  ylim(0, 40) +
-  labs(y= "Percentage", x = "State", fill= "Year") +
-  labs(title="People living in poverty in the Northern Border States of Mexico: 2016-2022")
+  theme(axis.text = element_text(size = 18), # axis text size
+        axis.title = element_text(size = 23), # axis tittle size
+        plot.title = element_text(size = 27), # plot tittle size
+        legend.key.height= unit(1, 'cm'), # legend height
+        legend.key.width= unit(1, 'cm'), # legend width
+        legend.text = element_text(size=18), # legend text size
+        legend.title = element_text(size=18)) + # legend title size
+  ylim(0, 40) + # y axis limits
+  labs(y= "Percentage", x = "State", fill= "Year") + # labs names and legend fill
+  labs(title="People living in poverty in the Northern Border States of Mexico: 2016-2022") # plot tittle
 
-
+# show plot
 poorpop_north_graph
 
 
@@ -401,7 +403,8 @@ legend("topright",
 
 #### Mexico ----
 
-carencias_Mex_1622_wider <-  poorpop2016_2022 %>% 
+# df for the radar chart filtering the needed data
+socialdep_Mex_1622_wider <-  poorpop2016_2022 %>% 
   filter(entidad == "Nacional", indicador== "Carencia por acceso a los servicios de salud" |
            indicador== "Carencia por acceso a la seguridad social" |
            indicador== "Carencia por calidad y espacios de la vivienda" |
@@ -412,43 +415,48 @@ carencias_Mex_1622_wider <-  poorpop2016_2022 %>%
   pivot_wider(values_from= 'porcentaje', names_from='indicador')%>% 
   mutate(Año = NULL)
 
-# cambiamos nombre de columnas para evitar reduncancia y traducir al inglés
-carencias_Mex_1622_wider <- rename(carencias_Mex_1622_wider,`Health care` = `Carencia por acceso a los servicios de salud`)
-carencias_Mex_1622_wider <- rename(carencias_Mex_1622_wider,`Social secutiry` = `Carencia por acceso a la seguridad social`)
-carencias_Mex_1622_wider <- rename(carencias_Mex_1622_wider,`Quality of living standards` = `Carencia por calidad y espacios de la vivienda`)
-carencias_Mex_1622_wider <- rename(carencias_Mex_1622_wider,`Access to basic services in the home` = `Carencia por acceso a los servicios básicos en la vivienda`)
-carencias_Mex_1622_wider <- rename(carencias_Mex_1622_wider,`Access to nutritious food` = `Carencia por acceso a la alimentación nutritiva y de calidad`)
+# change names of the variables from Spanish to English
+socialdep_Mex_1622_wider <- rename(socialdep_Mex_1622_wider,`Health care` = `Carencia por acceso a los servicios de salud`)
+socialdep_Mex_1622_wider <- rename(socialdep_Mex_1622_wider,`Social secutiry` = `Carencia por acceso a la seguridad social`)
+socialdep_Mex_1622_wider <- rename(socialdep_Mex_1622_wider,`Quality of living standards` = `Carencia por calidad y espacios de la vivienda`)
+socialdep_Mex_1622_wider <- rename(socialdep_Mex_1622_wider,`Access to basic services in the home` = `Carencia por acceso a los servicios básicos en la vivienda`)
+socialdep_Mex_1622_wider <- rename(socialdep_Mex_1622_wider,`Access to nutritious food` = `Carencia por acceso a la alimentación nutritiva y de calidad`)
 
 
 
-# renombramos los renglones
-rownames(carencias_Mex_1622_wider) <- c("2016", "2018", "2020", "2022")
+# rename the rows according to the years of study
+rownames(socialdep_Mex_1622_wider) <- c("2016", "2018", "2020", "2022")
 
-# agregamos dos renglones que correspondan al máximo y mínimo del gráfico
-carencias_Mex_1622_wider <- rbind(rep(60,5) , rep(0,5) , carencias_Mex_1622_wider)
+# add two rows corresponding to the max and min values of the chart; this arrangement is necesary for
+# the radar chart to be work
+socialdep_Mex_1622_wider <- rbind(rep(60,5) , rep(0,5) , socialdep_Mex_1622_wider)
 
+# Set a color palette
+wine <-"#832347"
+green <-"#097275"
+golden <-"#CCB656"
+grey <-"#A8A8A7"
+orange <-"#C96C1C"
+brown <-"#7C5C15"
 
-# Color vector
-colors_border=c( rgb(0.2,0.5,0.5,0.9), rgb(0.8,0.2,0.5,0.9) , rgb(0.7,0.5,0.1,0.9) )
-colors_in=c( rgb(0.2,0.5,0.5,0.4), rgb(0.8,0.2,0.5,0.4) , rgb(0.7,0.5,0.1,0.4) )
+colors <- c(wine, green, golden, grey, orange, brown)
 
-
-radarchart(carencias_Mex_1622_wider,
-           axistype=1 , 
+# radar chart
+radarchart(socialdep_Mex_1622_wider, # data
+           axistype=1 , # axis type can be 1, 2 or 3
            #custom polygon
-           pcol=colors_isaf, plwd=4 , plty=2,
+           pcol=colors, plwd=4 , plty=2,
            #custom the grid
            cglcol="grey", cglty=1, axislabcol="grey", caxislabels=c("12%","24%","36%","48%","60%"), cglwd=1,
            #custom labels
            vlcex= 0.9 ,
-           title= "Porcentaje de la población en México por carencias sociales: 2016-2022")
-
-# Percentage of people living in Mexico by social deprivations 
+           title= "Percentage of people living in Mexico by social deprivations: 2016-2022") # add title
 
 
+# add legend
 legend("topright",
        legend = paste(c(2016, 2018, 2020, 2022)),
-       bty = "n", pch = 20, col = colors_isaf,
+       bty = "n", pch = 20, col = colors,
        text.col = "grey25", pt.cex = 3)
 
 
