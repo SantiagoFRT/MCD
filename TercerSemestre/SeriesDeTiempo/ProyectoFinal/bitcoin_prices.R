@@ -1,6 +1,6 @@
 ### Install packages----
-install.packages(plotly) # for candlestick chart
-install.packages(quantmod) # for financial data from the US stock market
+# install.packages(plotly) # for candlestick chart
+# install.packages(quantmod) # for financial data from the US stock market
 
 ### Set up libraries ---
 library(plotly)
@@ -14,11 +14,15 @@ df <- data.frame(Date=index(`BTC-USD`),coredata(`BTC-USD`))
 # df <- tail(df, 30)
 
 ### Set candlestick chart ----
-candlestick <- df %>% plot_ly(x = ~Date, type="candlestick", # set x axis data and kind of chart
+candlestick <- df %>% plot_ly(x = df$Date, type="candlestick", # set x axis data and kind of chart
                       open = ~BTC.USD.Open, close = ~BTC.USD.Close, # set dates when markets open and close
-                      high = ~BTC.USD.High, low = ~BTC.USD.Low) # set higher and lower stock prices
-candlestick <- candlestick %>% layout(title = "Daily Bitcoin stock prices: September 17, 2017 - October 16, 2023", # chart title
+                      high = ~BTC.USD.High, low = ~BTC.USD.Low) # set higher and lower stock prices 
+
+candlestick <- candlestick %>% layout(title = "Daily Bitcoin stock prices: September 17, 2014 - October 29, 2023", # chart title
                       xaxis = list(rangeslider = list(visible = F))) 
+
+# candlestick <- add_trace(candlestick, x = 0.3, y = 4, type = "scatter", mode = "markers", color = I("red"), inherit = FALSE, name = "myPoint")
+
 
 candlestick
 
@@ -27,11 +31,164 @@ candlestick
 # https://www.quora.com/How-far-are-the-chart-patterns-reliable-for-stock-trading
 
 
-# Double Top and Bottom
-# The double top or bottom are reversal patterns, 
-# signaling areas where the market has made two unsuccessful 
-# attempts to break through a support or resistance level.
+### Flag pattern----
+# Flags are continuation patterns constructed using
+# two parallel trendlines that can slope up, down, or
+# sideways (horizontal). Generally, a flag with an
+# upward slope (bullish) appears as a pause in a
+# down trending market; a flag with a downward
+# bias (bearish) shows a break during an up
+# trending market. Typically, the flag's formation
+# is accompanied by declining volume, which recovers
+# as price breaks out of the flag formation.
+
 # 
-# A double top often looks like the letter M and is an 
-# initial push up to a resistance level followed by a 
-# second failed attempt, resulting in a trend reversal.
+
+# Definimos "nrow" como el número de renglones de nuestro df. Esto facilita el definirlo para
+# próximas funciones. Se coloca el "-1" porque el último renglon de df sólo tiene NA's.
+
+nrow <- nrow(df)-1
+
+
+# Definición de parámetros o arreglos auxiliares:
+#   
+#   - Definir amplitud de un pivote (decir que se consideran n puntos adyacentes para poder definir un punto como pivote en la gráfica)
+# 
+#   - Crear dos arreglos para determinar los pivotes obtenidos con los parámetros de low y de high 
+
+
+n = 5
+
+Pivotlow <- rep(1, nrow)
+Pivothigh <- rep(1, nrow)
+
+ 
+# Pseudocódigo:
+  
+# Marcamos a los primeros y últimos n elementos de dataframe con 0 para señalar que no pueden ser pivotes
+
+
+  for (i in 1:n){
+    
+    Pivotlow[i] <- 0
+    
+    Pivotlow[nrow+1-i] <- 0
+    
+    Pivothigh[i] <- 0
+    
+    Pivothigh[nrow+1-i] <- 0
+    
+  }
+
+
+# Terminar de llenar los arreglos de Pivotlow y Pivothigh con 0 o 1 para encontrar todos los pivotes de la gráfica considerando los parámetros de low y high
+
+
+Nelements <- (n+1) : (nrow-n) # Entradas del Dataframe a considerar para posibles pivotes
+
+for (i in Nelements){
+  
+  # En este ciclo comparamos el elemento i del dataframe con 
+  # sus n vecinos de cada lado para establecer si es algún 
+  # tipo de pivote a base de cambiar el valor de los booleanos anteriores
+  
+  for (j in (i - n):(i + n)) {
+    if (df$BTC.USD.Low[i] > df$BTC.USD.Low[j]) {
+      Pivotlow[i] <- 0
+    }
+    if (df$BTC.USD.High[i] < df$BTC.USD.High[j]) {
+      Pivothigh[i] <- 0
+    }
+  
+                                  }
+
+                    }
+
+
+
+# Lo anterior nos dejar con dos arreglos Pivotlow y Pivothigh que consiste de puros 0’s y 1’s, 
+# de tal manera que si Pivotlow[i] = 0 significa que el valor low de la i-esima entrada 
+# del dataframe no es un pivote, mientras que Pivotlow[i] = 1 significaria que el 
+# valor low de la i-esima entrada de del dataframe si es un pivote. Analogo para Pivothigh. Esta
+# es una aplicación del uso de valores booleanos.
+
+# Procedemos a marcar los pivotes encontrados en la grafica,
+
+# for (i in 1:nrow){
+#   
+#   if (Pivotlow[i] == 1){
+#     
+    # candlestick <- add_trace(candlestick, x = df$Date[i],
+    #                          y = df$BTC.USD.Low[i] , type = "scatter",
+    #                          mode = "markers", color = I("red"), inherit = FALSE)
+    #                          # name = "myPoint")
+#     
+#                         }
+#   
+#   if (Pivothigh[i] == 1){
+#     
+#     candlestick <- add_trace(candlestick, x = df$Date[i], 
+#                              y =  df$BTC.USD.High[i] , 
+#                              type = "scatter", mode = "markers", color = I("green"), inherit = FALSE)
+#                              # name = "myPoint"
+#     
+#                         }
+#                         
+# }
+
+# Npivotlow es el número de pivotes inferiores en la gráfica "candlestick"; análogo
+# para Npivothigh
+Npivotlow = 0
+Npivothigh = 0
+
+# Se recorren los arreglos de booleanos y se cuenta la cantidad de "1's" en cada uno.
+# Cada cantidad de "1's" es la cantidad de pivotes en cada arreglo.
+for (i in 1:nrow){
+  if (Pivotlow[i] == 1){ Npivotlow <- Npivotlow +1}
+  if (Pivothigh[i] == 1){ Npivothigh <- Npivothigh +1}
+}
+
+# Se declararon arreglos en los que se guardan los datos de fecha (date) y 
+# valores (pivotlow o pivothigh).
+PivotlowDate <- df$Date[1:Npivotlow]
+PivotLow <- rep(0, Npivotlow) # Se llenará este arreglo con el número de valores pivotlow
+PivothighDate <- df$Date[1:Npivothigh]
+PivotHigh <- rep(0, Npivothigh)
+
+# Índice auxiliar. Se usan para llenar los cuatro 
+#arreglos mencionados en las líneas anteriores. Su
+# utilidad se refleja en el ciclo for a continuación
+i_low=1
+i_high=1
+
+# El siguiente ciclo for es para llenar los valores de los arreglos 
+# PivotlowDate, PivotLow, PivothighDate y PivotHigh, usando los índices auxiliares
+for (i in 1:nrow){
+  if (Pivotlow[i] == 1){ 
+    PivotlowDate[i_low] <- df$Date[i]
+    PivotLow[i_low] <- df$BTC.USD.Low[i]
+    i_low <- i_low + 1
+  }
+  if (Pivothigh[i] == 1){ 
+    PivothighDate[i_high] <- df$Date[i]
+    PivotHigh[i_high] <- df$BTC.USD.High[i]
+    i_high <- i_high + 1
+  }
+}
+
+# Se colocan los puntos sobre el objeto "candlestick" previamente creado.
+candlestick <- add_trace(candlestick, x = PivotlowDate,
+                         y = PivotLow , type = "scatter",
+                         mode = "markers", color = I("#FFAC33"), inherit = FALSE,  
+                         name = "PivotLow")
+
+candlestick <- add_trace(candlestick, x = PivothighDate,
+                         y = PivotHigh , type = "scatter",
+                         mode = "markers", color = I("skyblue"), inherit = FALSE,  
+                         name = "PivotHigh")
+
+# Se grafica "candlestick"
+candlestick
+
+
+
