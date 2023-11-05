@@ -176,6 +176,7 @@ for (i in 1:nrow){
   }
 }
 
+
 # Se colocan los puntos sobre el objeto "candlestick" previamente creado.
 candlestick <- add_trace(candlestick, x = PivotlowDate,
                          y = PivotLow , type = "scatter",
@@ -187,8 +188,73 @@ candlestick <- add_trace(candlestick, x = PivothighDate,
                          mode = "markers", color = I("skyblue"), inherit = FALSE,  
                          name = "PivotHigh")
 
-# Se grafica "candlestick"
 candlestick
 
+### Regresion lineal para crear las banderas ----
+
+# Se usa el comando lm() para generar las lineas, tanto en los valores
+# PivotLow como PivotHigh, que darán forma a la bandera.
 
 
+# PivotLow
+df_PivotLow.lm <- data.frame(PivotLow, PivotlowDate)
+
+
+matrix_coef_PivotLow.lm  <- data.frame(summary(lm(formula = PivotLow ~ PivotlowDate,
+                              data = df_PivotLow.lm))$coefficients)$Estimate[2]
+
+matrix_coef_PivotLow.lm
+
+# PivotHigh
+df_PivotHigh.lm <- data.frame(PivotHigh, PivothighDate)
+
+
+matrix_coef_PivotHigh.lm  <- data.frame(summary(lm(formula = PivotHigh ~ PivothighDate,
+                                                  data = df_PivotHigh.lm))$coefficients)
+
+matrix_coef_PivotHigh.lm$Estimate[2]
+
+
+# Creamos un arreglo para guardar los valores de las pendientes de los pivotes low y high
+
+PivotLow.lm_slope <- rep(0, Npivotlow - 5)
+
+PivotHigh.lm_slope <- rep(0, Npivothigh - 5)
+
+
+# Aplicamos un ciclo for para generar una pendiente en cada 6 puntos pivote
+
+
+for (i in 1:Npivotlow - 5){
+  
+  PivotLow_i <- PivotLow[(i):(i+5)]
+  PivotLowDate_i <- PivotlowDate[(i):(i+5)]
+  
+  df_PivotLow.lm_i <- data.frame(PivotLow_i, PivotLowDate_i)
+  
+  
+  PivotLow.lm_slope[i] <- data.frame(summary(lm(formula = PivotLow_i ~ PivotLowDate_i,
+                                                    data = df_PivotLow.lm_i))$coefficients)$Estimate[2]
+  
+  # PivotLow.lm_slope <- data.frame(summary(lm(formula = PivotLow[i:i+5] ~ PivotlowDate[i:i+5],
+                                             # data = df_PivotLow.lm))$coefficients)$Estimate[2]
+
+}
+
+
+for (i in 1:Npivothigh - 5){
+  
+  PivotHigh.lm_slope[i] <- lm(formula = PivotHigh[i:i+5] ~ PivothighDate[i:i+5],
+                             data = df_PivotHigh.lm)$coefficients[2]
+  
+  
+}
+
+PivotLow.lm_slope[i]
+
+PivotLow.lm_slope
+PivotHigh.lm_slope
+
+
+# Referencias
+# https://statisticsglobe.com/extract-regression-coefficients-of-linear-model-in-r
