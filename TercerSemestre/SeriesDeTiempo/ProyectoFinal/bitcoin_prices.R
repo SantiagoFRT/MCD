@@ -18,7 +18,7 @@ candlestick <- df %>% plot_ly(x = df$Date, type="candlestick", # set x axis data
                       open = ~BTC.USD.Open, close = ~BTC.USD.Close, # set dates when markets open and close
                       high = ~BTC.USD.High, low = ~BTC.USD.Low) # set higher and lower stock prices 
 
-candlestick <- candlestick %>% layout(title = "Daily Bitcoin stock prices: September 17, 2014 - October 29, 2023", # chart title
+candlestick <- candlestick %>% layout(title = "Daily Bitcoin stock prices: September 17, 2014 - today", # chart title
                       xaxis = list(rangeslider = list(visible = F))) 
 
 # candlestick <- add_trace(candlestick, x = 0.3, y = 4, type = "scatter", mode = "markers", color = I("red"), inherit = FALSE, name = "myPoint")
@@ -215,17 +215,29 @@ matrix_coef_PivotHigh.lm  <- data.frame(summary(lm(formula = PivotHigh ~ Pivothi
 matrix_coef_PivotHigh.lm$Estimate[2]
 
 
-# Creamos un arreglo para guardar los valores de las pendientes de los pivotes low y high
+
+# Creamos arreglos para guardar los valores de las pendientes de los pivotes low y high
 
 PivotLow.lm_slope <- rep(0, Npivotlow - 5)
 
 PivotHigh.lm_slope <- rep(0, Npivothigh - 5)
 
 
-# Aplicamos un ciclo for para generar una pendiente en cada 6 puntos pivote
+
+# Creamos arreglos para guardar los valores de los interceptos de los pivotes low y high
+
+PivotLow.lm_inter <- rep(0, Npivotlow - 5)
+
+PivotHigh.lm_inter <- rep(0, Npivothigh - 5)
 
 
-for (i in 1:Npivotlow - 5){
+
+
+# Aplicamos un ciclo for para generar una pendiente e interceptos
+# en cada 6 puntos pivote
+
+
+for (i in 1:(Npivotlow - 5)){
   
   PivotLow_i <- PivotLow[(i):(i+5)]
   PivotLowDate_i <- PivotlowDate[(i):(i+5)]
@@ -235,25 +247,94 @@ for (i in 1:Npivotlow - 5){
   
   PivotLow.lm_slope[i] <- data.frame(summary(lm(formula = PivotLow_i ~ PivotLowDate_i,
                                                     data = df_PivotLow.lm_i))$coefficients)$Estimate[2]
+
+  PivotLow.lm_inter[i] <- data.frame(summary(lm(formula = PivotLow_i ~ PivotLowDate_i,
+                                                data = df_PivotLow.lm_i))$coefficients)$Estimate[1]
   
-  # PivotLow.lm_slope <- data.frame(summary(lm(formula = PivotLow[i:i+5] ~ PivotlowDate[i:i+5],
-                                             # data = df_PivotLow.lm))$coefficients)$Estimate[2]
 
 }
 
 
-for (i in 1:Npivothigh - 5){
+for (i in 1:(Npivothigh - 5)){
   
-  PivotHigh.lm_slope[i] <- lm(formula = PivotHigh[i:i+5] ~ PivothighDate[i:i+5],
-                             data = df_PivotHigh.lm)$coefficients[2]
+  PivotHigh_i <- PivotHigh[(i):(i+5)]
+  PivotHighDate_i <- PivothighDate[(i):(i+5)]
   
+  df_PivotHigh.lm_i <- data.frame(PivotHigh_i, PivotHighDate_i)
+  
+  
+  PivotHigh.lm_slope[i] <- data.frame(summary(lm(formula = PivotHigh_i ~ PivotHighDate_i,
+                                                data = df_PivotHigh.lm_i))$coefficients)$Estimate[2]
+  
+  PivotHigh.lm_inter[i] <- data.frame(summary(lm(formula = PivotHigh_i ~ PivotHighDate_i,
+                                                 data = df_PivotHigh.lm_i))$coefficients)$Estimate[1]
   
 }
 
-PivotLow.lm_slope[i]
+# Verificamos que se hayan guardado las pendientes en los vectores "PivotLow.lm_slope" 
+# y "PivotHigh.lm_slope", así como los interceptos en 
+# "PivotLow.lm_inter" y "PivotHigh.lm_inter"
 
 PivotLow.lm_slope
 PivotHigh.lm_slope
+
+PivotLow.lm_inter
+PivotHigh.lm_inter
+
+
+# Creamos un objeto que guarde
+# el tamaño de los vectores "PivotLow.lm_slope"  y "PivotHigh.lm_slope"
+
+PivotLow.lm_slope_size <- length(PivotLow.lm_slope)
+PivotHigh.lm_slope_size <- length(PivotHigh.lm_slope)
+
+
+for(i in 1: PivotLow.lm_slope_size ){
+  
+  for( j in max(1,i-2) : min(i+2, PivotHigh.lm_slope_size)){
+    
+    if(abs(PivotLow.lm_slope[j]-PivotLow.lm_slope [i]) < 0.2){
+      
+      x_low = c(PivotlowDate[i], PivotlowDate[i+5])
+      y_low = c((PivotLow.lm_slope[i]*PivotLow[i])+PivotLow.lm_inter[i] , (PivotLow.lm_slope[i]*PivotLow[i+5])+PivotLow.lm_inter[i])
+      candlestick <- add_trace(candlestick, x = x_low,
+                y = y_low , mode = 'lines',  
+                name = "PivotLow_slope")
+      
+      # x_high = c(PivotHigh[i], PivotHigh[i+5])
+      # y_high = c((PivotHigh.lm_slope[i]*PivotHigh[i])+PivotHigh.lm_inter[i] , (PivotHigh.lm_slope[i]*PivotLow[i+5])+PivotLow.lm_inter[i])
+      # plot(x_high, y_high)
+      
+      }
+  
+    }
+
+}
+
+candlestick
+
+# Se colocan las líneas sobre el objeto "candlestick" previamente creado. Éstas corresponden
+# a las pendientes generadas en el ciclo for anterior
+# add_lines(p, x = NULL, y = NULL, z = NULL, ..., data = NULL, inherit = TRUE)
+
+
+candlestick <- add_lines(candlestick, x = x_low,
+                         y = y_low , z = NULL, data= NULL, inherit = TRUE)
+
+candlestick <- add_trace(candlestick, x = PivothighDate,
+                         y = PivotHigh , type = "scatter",
+                         mode = "markers", color = I("skyblue"), inherit = FALSE,  
+                         name = "PivotHigh")
+
+candlestick
+
+
+
+# %Graficamos las rectas resultantes de las regresiones lineales que 
+# mostraron tener pendientes similares
+# X = c(PivotLow[i], PivotLow[i+5])
+# Y = c( PivotLow.lm_slope[i]*PivotLow[i]+PivotLow.lm_inter[i] , PivotLow.lm_slope[i]*PivotLow[i+5]+PivotLow.lm_inter[i] )
+# Plot (x,y)
 
 
 # Referencias
