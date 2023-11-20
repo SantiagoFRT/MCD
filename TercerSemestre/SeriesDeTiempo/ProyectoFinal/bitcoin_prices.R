@@ -288,30 +288,77 @@ PivotHigh.lm_inter
 PivotLow.lm_slope_size <- length(PivotLow.lm_slope)
 PivotHigh.lm_slope_size <- length(PivotHigh.lm_slope)
 
+# Los siguientes ciclos for son para que se muestren las pendientes 
+# guardadas a lo largo de la serie de tiempo, tanto en el caso pivotlow
+# como PivotHigh
+
+# PROBLEMA: Checar la condicion "if", ¿es correcto usar el "&" para indicar una
+# condicion adicional al "if"? Checar sintáxis
+
+
+PivotlowDate_num <- as.numeric(PivotlowDate)
+PivothighDate_num <- as.numeric(PivothighDate)
 
 for(i in 1: PivotLow.lm_slope_size ){
   
-  for( j in max(1,i-2) : min(i+2, PivotHigh.lm_slope_size)){
+  for( j in (1:PivotHigh.lm_slope_size)){
     
-    if(abs(PivotLow.lm_slope[j]-PivotLow.lm_slope [i]) < 0.2){
+    if(abs(PivotHigh.lm_slope[j]-PivotLow.lm_slope[i]) < 0.001 & abs(PivothighDate_num[j]-PivotlowDate_num[i]) < 1000000){
       
       x_low = c(PivotlowDate[i], PivotlowDate[i+5])
-      y_low = c((PivotLow.lm_slope[i]*PivotLow[i])+PivotLow.lm_inter[i] , (PivotLow.lm_slope[i]*PivotLow[i+5])+PivotLow.lm_inter[i])
-      candlestick <- add_trace(candlestick, x = x_low,
-                y = y_low , mode = 'lines',  
-                name = "PivotLow_slope")
+      y_low = c((PivotLow.lm_slope[i]*PivotlowDate_num[i])+PivotLow.lm_inter[i] , 
+                (PivotLow.lm_slope[i]*PivotlowDate_num[i+5])+PivotLow.lm_inter[i])
+      candlestick <- add_lines(candlestick, x = x_low,
+                               y = y_low, color = I("#FFAC33"))
       
-      # x_high = c(PivotHigh[i], PivotHigh[i+5])
-      # y_high = c((PivotHigh.lm_slope[i]*PivotHigh[i])+PivotHigh.lm_inter[i] , (PivotHigh.lm_slope[i]*PivotLow[i+5])+PivotLow.lm_inter[i])
-      # plot(x_high, y_high)
+      x_high = c(PivothighDate[j], PivothighDate[j+5])
+      y_high = c((PivotHigh.lm_slope[j]*PivothighDate_num[j])+PivotHigh.lm_inter[j] , 
+                 (PivotHigh.lm_slope[j]*PivothighDate_num[j+5])+PivotHigh.lm_inter[j])
+      candlestick <- add_lines(candlestick, x = x_high,
+                               y = y_high, color = I("skyblue"))
+    
+      i <- i+5
       
-      }
-  
     }
-
+    
+  }
+  
 }
 
+
+# for(i in 1: PivotLow.lm_slope_size ){
+#   
+#   for( j in max(1,i-1) : min(i+1, PivotHigh.lm_slope_size)){
+#     
+#     print(abs(PivotHigh.lm_slope[j]-PivotLow.lm_slope[i]))
+#     
+#     if(abs(PivotHigh.lm_slope[j]-PivotLow.lm_slope[i]) < 0.0001){
+#       
+#       x_low = c(PivotlowDate[i], PivotlowDate[i+5])
+#       y_low = c((PivotLow.lm_slope[i]*PivotlowDate_num[i])+PivotLow.lm_inter[i] , 
+#                 (PivotLow.lm_slope[i]*PivotlowDate_num[i+5])+PivotLow.lm_inter[i])
+#                 candlestick <- add_lines(candlestick, x = x_low,
+#                 y = y_low, color = I("#FFAC33"))
+#       
+#       x_high = c(PivothighDate[j], PivothighDate[j+5])
+#       y_high = c((PivotHigh.lm_slope[j]*PivothighDate_num[j])+PivotHigh.lm_inter[j] , 
+#                 (PivotHigh.lm_slope[j]*PivothighDate_num[j+5])+PivotHigh.lm_inter[j])
+#       candlestick <- add_lines(candlestick, x = x_high,
+#                                y = y_high, color = I("skyblue"))
+#       
+#       i <- i+5 
+#   
+#       }
+#   
+#     }
+# 
+# }
+
+
+
 candlestick
+
+
 
 # Se colocan las líneas sobre el objeto "candlestick" previamente creado. Éstas corresponden
 # a las pendientes generadas en el ciclo for anterior
