@@ -1,0 +1,42 @@
+---
+title: "BitcoinPrices_Flagpattern_TDA_2023-2"
+author: "Santiago Francisco Robles Tamayo"
+date: "2023-11-29"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(plotly)
+library(quantmod)
+
+```
+
+### Get Bitcoin-USD data from yahoo finance and set dataframe
+
+```{r cars}
+
+getSymbols("BTC-USD",src='yahoo')
+
+### Set dataframe ----
+df <- data.frame(Date=index(`BTC-USD`),coredata(`BTC-USD`))
+```
+
+
+### Generamos la gr[afica "candlestick"
+
+```{r}
+
+candlestick <- df %>% plot_ly(x = df$Date, type="candlestick", # set x axis data and kind of chart
+                      open = ~BTC.USD.Open, close = ~BTC.USD.Close, # set dates when markets open and close
+                      high = ~BTC.USD.High, low = ~BTC.USD.Low) # set higher and lower stock prices 
+
+candlestick <- candlestick %>% layout(title = "Daily Bitcoin stock prices: September 17, 2014 - today", # chart title
+                      xaxis = list(rangeslider = list(visible = F))) 
+
+# candlestick <- add_trace(candlestick, x = 0.3, y = 4, type = "scatter", mode = "markers", color = I("red"), inherit = FALSE, name = "myPoint")
+
+
+candlestick
+
+```
