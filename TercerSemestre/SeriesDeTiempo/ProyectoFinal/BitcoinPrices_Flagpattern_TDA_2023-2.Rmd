@@ -40,3 +40,88 @@ candlestick <- candlestick %>% layout(title = "Daily Bitcoin stock prices: Septe
 candlestick
 
 ```
+
+### Patrón de bandera
+
+Las banderas son patrones de continuación construidos utilizando dos líneas de tendencia paralelas que pueden tener pendientes hacia arriba, hacia abajo o lateralmente (horizontal). Generalmente, una bandera con una pendiente ascendente (alcista) aparece como una pausa en un mercado en tendencia bajista; una bandera con un sesgo descendente (bajista) muestra una pausa durante un mercado en tendencia alcista. Típicamente, la formación de la bandera va acompañada de un volumen decreciente, el cual se recupera cuando el precio rompe la formación de la bandera.
+
+### Construcción del patrón de bandera
+
+Definimos "nrow" como el número de renglones de nuestro df. Esto facilita el definirlo para próximas funciones. Se coloca el "-1" porque el último renglon de df sólo tiene NA's.
+
+```{r}
+
+nrow <- nrow(df)-1
+
+```
+
+
+Definición de parámetros o arreglos auxiliares:
+
+* Definir amplitud de un pivote (decir que se consideran n puntos adyacentes para poder definir un punto como pivote en la gráfica)
+
+* Crear dos arreglos para determinar los pivotes obtenidos con los parámetros de low y de high
+  
+
+```{r}
+
+n = 5
+
+Pivotlow <- rep(1, nrow)
+Pivothigh <- rep(1, nrow)
+
+```
+
+
+Marcamos a los primeros y últimos n elementos de dataframe con 0 para señalar que no pueden ser pivotes
+
+
+```{r}
+
+  for (i in 1:n){
+    
+    Pivotlow[i] <- 0
+    
+    Pivotlow[nrow+1-i] <- 0
+    
+    Pivothigh[i] <- 0
+    
+    Pivothigh[nrow+1-i] <- 0
+    
+  }
+
+```
+
+
+Terminar de llenar los arreglos de Pivotlow y Pivothigh con 0 o 1 para encontrar todos los pivotes de la gráfica considerando los parámetros de low y high.
+
+
+```{r}
+
+Nelements <- (n+1) : (nrow-n) # Entradas del Dataframe a considerar para posibles pivotes
+
+for (i in Nelements){
+  
+  # En este ciclo comparamos el elemento i del dataframe con 
+  # sus n vecinos de cada lado para establecer si es algún 
+  # tipo de pivote a basTerminar de llenar los arreglos de Pivotlow y Pivothigh con 0 o 1 para encontrar todos los pivotes de la gráfica considerando los parámetros de low y highe de cambiar el valor de los booleanos anteriores
+  
+  for (j in (i - n):(i + n)) {
+    if (df$BTC.USD.Low[i] > df$BTC.USD.Low[j]) {
+      Pivotlow[i] <- 0
+    }
+    if (df$BTC.USD.High[i] < df$BTC.USD.High[j]) {
+      Pivothigh[i] <- 0
+    }
+  
+                                  }
+
+                    }
+
+```
+
+
+Lo anterior nos dejar con dos arreglos Pivotlow y Pivothigh que consiste de puros 0’s y 1’s, de tal manera que si Pivotlow[i] = 0 significa que el valor low de la i-esima entrada del dataframe no es un pivote, mientras que Pivotlow[i] = 1 significaria que el valor low de la i-esima entrada de del dataframe si es un pivote. Analogo para Pivothigh. Esta es una aplicación del uso de valores *booleanos*.
+
+Procedemos a marcar los pivotes encontrados en la grafica,donde 
+

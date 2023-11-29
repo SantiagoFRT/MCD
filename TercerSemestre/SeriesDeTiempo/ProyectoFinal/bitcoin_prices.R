@@ -41,6 +41,7 @@ candlestick
 # trending market. Typically, the flag's formation
 # is accompanied by declining volume, which recovers
 # as price breaks out of the flag formation.
+##
 
 # 
 
@@ -51,10 +52,10 @@ nrow <- nrow(df)-1
 
 
 # Definición de parámetros o arreglos auxiliares:
-#   
+# 
 #   - Definir amplitud de un pivote (decir que se consideran n puntos adyacentes para poder definir un punto como pivote en la gráfica)
 # 
-#   - Crear dos arreglos para determinar los pivotes obtenidos con los parámetros de low y de high 
+#   - Crear dos arreglos para determinar los pivotes obtenidos con los parámetros de low y de high
 
 
 n = 5
@@ -90,7 +91,7 @@ for (i in Nelements){
   
   # En este ciclo comparamos el elemento i del dataframe con 
   # sus n vecinos de cada lado para establecer si es algún 
-  # tipo de pivote a base de cambiar el valor de los booleanos anteriores
+  # tipo de pivote a basTerminar de llenar los arreglos de Pivotlow y Pivothigh con 0 o 1 para encontrar todos los pivotes de la gráfica considerando los parámetros de low y highe de cambiar el valor de los booleanos anteriores
   
   for (j in (i - n):(i + n)) {
     if (df$BTC.USD.Low[i] > df$BTC.USD.Low[j]) {
@@ -105,10 +106,10 @@ for (i in Nelements){
                     }
 
 
-
-# Lo anterior nos dejar con dos arreglos Pivotlow y Pivothigh que consiste de puros 0’s y 1’s, 
-# de tal manera que si Pivotlow[i] = 0 significa que el valor low de la i-esima entrada 
-# del dataframe no es un pivote, mientras que Pivotlow[i] = 1 significaria que el 
+# 
+# Lo anterior nos dejar con dos arreglos Pivotlow y Pivothigh que consiste de puros 0’s y 1’s,
+# de tal manera que si Pivotlow[i] = 0 significa que el valor low de la i-esima entrada
+# del dataframe no es un pivote, mientras que Pivotlow[i] = 1 significaria que el
 # valor low de la i-esima entrada de del dataframe si es un pivote. Analogo para Pivothigh. Esta
 # es una aplicación del uso de valores booleanos.
 
