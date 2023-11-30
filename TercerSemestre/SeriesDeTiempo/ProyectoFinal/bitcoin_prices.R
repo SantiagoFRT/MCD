@@ -291,20 +291,34 @@ PivotHigh.lm_slope_size <- length(PivotHigh.lm_slope)
 
 # Los siguientes ciclos for son para que se muestren las pendientes 
 # guardadas a lo largo de la serie de tiempo, tanto en el caso pivotlow
-# como PivotHigh
-
-# PROBLEMA: Checar la condicion "if", ¿es correcto usar el "&" para indicar una
-# condicion adicional al "if"? Checar sintáxis
+# como PivotHigh. La función "as.numeric()" aplicada al objeto "Date" llamado 
+# "PivotlowDate_num", devolverá el número de días transcurridos entre el 1 de 
+# enero de 1970, y la fecha del datos. OJO: esta función devulve días, horas, minutos
+# o segundos, en función de el formato de fecha.
 
 
 PivotlowDate_num <- as.numeric(PivotlowDate)
 PivothighDate_num <- as.numeric(PivothighDate)
 
+# El siguiente ciclo for genera las banderas sobre nuestro objeto "candlestick".
+# Hay dos parámetros principales para determinar la cantidad de líneas paralelas
+# que formarán los márgenes de las banderas:
+# 1) La diferencia máxima en la pendiente de ambas líneas: si aumenta, se generarán
+# más líneas (y, por tanto, baneras) porque significa una mayor tolerancia
+# a qué tan paralelas serán los márgenes de la bandera. En nuestro caso 
+# lo determinaos como "<0.5".
+# 2) Máximo número de diferencias de días entre el inicio de la 
+# línea de pivotes altos y línea de pivots bajos: si aumentamos este valor,
+# aumentará el número de banderas, pues habrá una mayor tolerancia entre la diferencia
+# de longitud entre la líneas que se forman con pivotes altos (pivothigh) y
+# las líneas que se forman con los pivotes bajos (pivot low).
+
+
 for(i in 1: PivotLow.lm_slope_size ){
   
   for( j in (1:PivotHigh.lm_slope_size)){
     
-    if(abs(PivotHigh.lm_slope[j]-PivotLow.lm_slope[i]) < 0.001 & abs(PivothighDate_num[j]-PivotlowDate_num[i]) < 1000000){
+    if(abs(PivotHigh.lm_slope[j]-PivotLow.lm_slope[i]) < 0.5 & abs(PivothighDate_num[j]-PivotlowDate_num[i]) < 28){
       
       x_low = c(PivotlowDate[i], PivotlowDate[i+5])
       y_low = c((PivotLow.lm_slope[i]*PivotlowDate_num[i])+PivotLow.lm_inter[i] , 
@@ -318,7 +332,7 @@ for(i in 1: PivotLow.lm_slope_size ){
       candlestick <- add_lines(candlestick, x = x_high,
                                y = y_high, color = I("skyblue"))
     
-      i <- i+5
+      i <- i+6 # Se utiliza "i+6" para considerar todos los pivotes 
       
     }
     
@@ -366,15 +380,15 @@ candlestick
 # add_lines(p, x = NULL, y = NULL, z = NULL, ..., data = NULL, inherit = TRUE)
 
 
-candlestick <- add_lines(candlestick, x = x_low,
-                         y = y_low , z = NULL, data= NULL, inherit = TRUE)
-
-candlestick <- add_trace(candlestick, x = PivothighDate,
-                         y = PivotHigh , type = "scatter",
-                         mode = "markers", color = I("skyblue"), inherit = FALSE,  
-                         name = "PivotHigh")
-
-candlestick
+# candlestick <- add_lines(candlestick, x = x_low,
+#                          y = y_low , z = NULL, data= NULL, inherit = TRUE)
+# 
+# candlestick <- add_trace(candlestick, x = PivothighDate,
+#                          y = PivotHigh , type = "scatter",
+#                          mode = "markers", color = I("skyblue"), inherit = FALSE,  
+#                          name = "PivotHigh")
+# 
+# candlestick
 
 
 
