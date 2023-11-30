@@ -6,13 +6,13 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 library(plotly)
 library(quantmod)
 
 ```
 
-### Get Bitcoin-USD data from yahoo finance and set dataframe
+### **Get Bitcoin-USD data from yahoo finance and set dataframe**
 
 ```{r cars}
 
@@ -23,7 +23,7 @@ df <- data.frame(Date=index(`BTC-USD`),coredata(`BTC-USD`))
 ```
 
 
-### Generamos la gr[afica "candlestick"
+### *Generamos la gr[afica "candlestick"*
 
 ```{r}
 
@@ -41,11 +41,11 @@ candlestick
 
 ```
 
-### Patrón de bandera
+### **Patrón de bandera**
 
 Las banderas son patrones de continuación construidos utilizando dos líneas de tendencia paralelas que pueden tener pendientes hacia arriba, hacia abajo o lateralmente (horizontal). Generalmente, una bandera con una pendiente ascendente (alcista) aparece como una pausa en un mercado en tendencia bajista; una bandera con un sesgo descendente (bajista) muestra una pausa durante un mercado en tendencia alcista. Típicamente, la formación de la bandera va acompañada de un volumen decreciente, el cual se recupera cuando el precio rompe la formación de la bandera.
 
-### Construcción del patrón de bandera
+### **Construcción del patrón de bandera**
 
 Definimos "nrow" como el número de renglones de nuestro df. Esto facilita el definirlo para próximas funciones. Se coloca el "-1" porque el último renglon de df sólo tiene NA's.
 
@@ -123,5 +123,263 @@ for (i in Nelements){
 
 Lo anterior nos dejar con dos arreglos Pivotlow y Pivothigh que consiste de puros 0’s y 1’s, de tal manera que si Pivotlow[i] = 0 significa que el valor low de la i-esima entrada del dataframe no es un pivote, mientras que Pivotlow[i] = 1 significaria que el valor low de la i-esima entrada de del dataframe si es un pivote. Analogo para Pivothigh. Esta es una aplicación del uso de valores *booleanos*.
 
-Procedemos a marcar los pivotes encontrados en la grafica,donde 
+Procedemos a marcar los pivotes encontrados en la grafica. Npivotlow es el número de pivotes inferiores en la gráfica "candlestick"; análogo para Npivothigh.
 
+```{r}
+
+Npivotlow = 0
+Npivothigh = 0
+
+
+```
+
+Se recorren los arreglos de booleanos y se cuenta la cantidad de "1's" en cada uno. Cada cantidad de "1's" es la cantidad de pivotes en cada arreglo.
+
+```{r}
+
+for (i in 1:nrow){
+  if (Pivotlow[i] == 1){ Npivotlow <- Npivotlow +1}
+  if (Pivothigh[i] == 1){ Npivothigh <- Npivothigh +1}
+}
+
+```
+
+Se declararon arreglos en los que se guardan los datos de fecha (date) y valores (pivotlow o pivothigh).
+
+```{r}
+
+PivotlowDate <- df$Date[1:Npivotlow]
+PivotLow <- rep(0, Npivotlow) # Se llenará este arreglo con el número de valores pivotlow
+PivothighDate <- df$Date[1:Npivothigh]
+PivotHigh <- rep(0, Npivothigh)
+
+```
+
+
+* Índice auxiliar: Se usan para llenar los cuatro arreglos mencionados en las líneas anteriores. Su utilidad se refleja en el ciclo for a continuación.
+
+
+```{r}
+
+i_low=1
+i_high=1
+
+```
+
+
+El siguiente ciclo for es para llenar los valores de los arreglos
+PivotlowDate, PivotLow, PivothighDate y PivotHigh, usando los índices auxiliares.
+
+
+```{r}
+
+for (i in 1:nrow){
+  if (Pivotlow[i] == 1){ 
+    PivotlowDate[i_low] <- df$Date[i]
+    PivotLow[i_low] <- df$BTC.USD.Low[i]
+    i_low <- i_low + 1
+  }
+  if (Pivothigh[i] == 1){ 
+    PivothighDate[i_high] <- df$Date[i]
+    PivotHigh[i_high] <- df$BTC.USD.High[i]
+    i_high <- i_high + 1
+  }
+}
+
+```
+
+
+Se colocan los puntos sobre el objeto "candlestick" previamente creado.
+
+```{r}
+
+candlestick <- add_trace(candlestick, x = PivotlowDate,
+                         y = PivotLow , type = "scatter",
+                         mode = "markers", color = I("#FFAC33"), inherit = FALSE,  
+                         name = "PivotLow")
+
+candlestick <- add_trace(candlestick, x = PivothighDate,
+                         y = PivotHigh , type = "scatter",
+                         mode = "markers", color = I("skyblue"), inherit = FALSE,  
+                         name = "PivotHigh")
+
+candlestick
+
+```
+
+
+### *Regresion lineal para crear las banderas*
+
+Se usa el comando lm() para generar las lineas, tanto en los valores PivotLow como PivotHigh, que darán forma a la bandera.
+
+```{r}
+
+# PivotLow
+df_PivotLow.lm <- data.frame(PivotLow, PivotlowDate)
+
+
+matrix_coef_PivotLow.lm  <- data.frame(summary(lm(formula = PivotLow ~ PivotlowDate,
+                              data = df_PivotLow.lm))$coefficients)$Estimate[2]
+
+matrix_coef_PivotLow.lm
+
+# PivotHigh
+df_PivotHigh.lm <- data.frame(PivotHigh, PivothighDate)
+
+
+matrix_coef_PivotHigh.lm  <- data.frame(summary(lm(formula = PivotHigh ~ PivothighDate,
+                                                  data = df_PivotHigh.lm))$coefficients)
+
+matrix_coef_PivotHigh.lm$Estimate[2]
+
+```
+
+
+Creamos arreglos para guardar los valores de las pendientes de los pivotes low y high.
+
+```{r}
+
+PivotLow.lm_slope <- rep(0, Npivotlow - 5)
+
+PivotHigh.lm_slope <- rep(0, Npivothigh - 5)
+
+```
+
+
+Creamos arreglos para guardar los valores de los interceptos de los pivotes low y high.
+
+```{r}
+
+PivotLow.lm_inter <- rep(0, Npivotlow - 5)
+
+PivotHigh.lm_inter <- rep(0, Npivothigh - 5)
+
+```
+
+
+Aplicamos un ciclo for para generar una pendiente e interceptos en cada 6 puntos pivote.
+
+```{r}
+
+for (i in 1:(Npivotlow - 5)){
+  
+  PivotLow_i <- PivotLow[(i):(i+5)]
+  PivotLowDate_i <- PivotlowDate[(i):(i+5)]
+  
+  df_PivotLow.lm_i <- data.frame(PivotLow_i, PivotLowDate_i)
+  
+  
+  PivotLow.lm_slope[i] <- data.frame(summary(lm(formula = PivotLow_i ~ PivotLowDate_i,
+                                                    data = df_PivotLow.lm_i))$coefficients)$Estimate[2]
+
+  PivotLow.lm_inter[i] <- data.frame(summary(lm(formula = PivotLow_i ~ PivotLowDate_i,
+                                                data = df_PivotLow.lm_i))$coefficients)$Estimate[1]
+  
+
+}
+
+
+for (i in 1:(Npivothigh - 5)){
+  
+  PivotHigh_i <- PivotHigh[(i):(i+5)]
+  PivotHighDate_i <- PivothighDate[(i):(i+5)]
+  
+  df_PivotHigh.lm_i <- data.frame(PivotHigh_i, PivotHighDate_i)
+  
+  
+  PivotHigh.lm_slope[i] <- data.frame(summary(lm(formula = PivotHigh_i ~ PivotHighDate_i,
+                                                data = df_PivotHigh.lm_i))$coefficients)$Estimate[2]
+  
+  PivotHigh.lm_inter[i] <- data.frame(summary(lm(formula = PivotHigh_i ~ PivotHighDate_i,
+                                                 data = df_PivotHigh.lm_i))$coefficients)$Estimate[1]
+  
+}
+
+# Verificamos que se hayan guardado las pendientes en los vectores "PivotLow.lm_slope"
+# y "PivotHigh.lm_slope", así como los interceptos en
+# "PivotLow.lm_inter" y "PivotHigh.lm_inter"
+
+PivotLow.lm_slope
+PivotHigh.lm_slope
+
+PivotLow.lm_inter
+PivotHigh.lm_inter
+
+```
+
+
+Creamos un objeto que guarde
+el tamaño de los vectores "PivotLow.lm_slope"  y "PivotHigh.lm_slope"
+
+```{r}
+
+PivotLow.lm_slope_size <- length(PivotLow.lm_slope)
+PivotHigh.lm_slope_size <- length(PivotHigh.lm_slope)
+
+```
+
+
+Los siguientes ciclos for son para que se muestren las pendientes guardadas a lo largo de la serie de tiempo, tanto en el caso pivotlow como PivotHigh. La función "as.numeric()" aplicada al objeto "Date" llamado "PivotlowDate_num", devolverá el número de días transcurridos entre el 1 de enero de 1970, y la fecha del datos. OJO: esta función devulve días, horas, minutos o segundos, en función de el formato de fecha.
+
+```{r}
+
+PivotlowDate_num <- as.numeric(PivotlowDate)
+PivothighDate_num <- as.numeric(PivothighDate)
+
+```
+
+El siguiente ciclo for genera las banderas sobre nuestro objeto "candlestick".
+Hay dos parámetros principales para determinar la cantidad de líneas paralelas
+que formarán los márgenes de las banderas:
+
+1) La diferencia máxima en la pendiente de ambas líneas: si aumenta, se generarán
+más líneas (y, por tanto, baneras) porque significa una mayor tolerancia
+a qué tan paralelas serán los márgenes de la bandera. En nuestro caso
+lo determinaos como "<0.5".
+2) Máximo número de diferencias de días entre el inicio de la
+línea de pivotes altos y línea de pivots bajos: si aumentamos este valor,
+aumentará el número de banderas, pues habrá una mayor tolerancia entre la diferencia
+de longitud entre la líneas que se forman con pivotes altos (pivothigh) y
+las líneas que se forman con los pivotes bajos (pivot low).
+
+
+```{r}
+
+for(i in 1: PivotLow.lm_slope_size ){
+  
+  for( j in (1:PivotHigh.lm_slope_size)){
+    
+    if(abs(PivotHigh.lm_slope[j]-PivotLow.lm_slope[i]) < 0.5 & abs(PivothighDate_num[j]-PivotlowDate_num[i]) < 28){
+      
+      x_low = c(PivotlowDate[i], PivotlowDate[i+5])
+      y_low = c((PivotLow.lm_slope[i]*PivotlowDate_num[i])+PivotLow.lm_inter[i] , 
+                (PivotLow.lm_slope[i]*PivotlowDate_num[i+5])+PivotLow.lm_inter[i])
+      candlestick <- add_lines(candlestick, x = x_low,
+                               y = y_low, color = I("#FFAC33"))
+      
+      x_high = c(PivothighDate[j], PivothighDate[j+5])
+      y_high = c((PivotHigh.lm_slope[j]*PivothighDate_num[j])+PivotHigh.lm_inter[j] , 
+                 (PivotHigh.lm_slope[j]*PivothighDate_num[j+5])+PivotHigh.lm_inter[j])
+      candlestick <- add_lines(candlestick, x = x_high,
+                               y = y_high, color = I("skyblue"))
+    
+      i <- i+6 # Se utiliza "i+6" para considerar todos los pivotes 
+      
+    }
+    
+  }
+  
+}
+
+```
+
+Dado que el objeto "candlestick" está hecho con plotly, esto permite interactividad en la gráfica. Una de las funciones interactivas es eliegir qué elementos de la gráfica se quieren visualizar (las gráficas de velas, los pivotes altos, pivotes bajos, o las líneas de badera superiores e inferioes). Considerando lo anterior, una forma sencilla de identificar dónde están los patrones de bandera es, en las legendas de la gráfica, dando click en los elementos "trace 0", "PivotLow" y "PivotHigh". Esto dejará en el plano sólo las pendienntes azules (línenas generadas con pivotes altos) y las líneas naranjas (líneas generadas con pivotes bajos). Despúes, basta con hacer zoom a donde se encuentran dichas líneas y, finalmente, dar click de nuevo en las leyendas a los elementos faltantes de la gráfica para ver el panoráma completo.
+
+```{r}
+
+# Se muestra el objeto "candlestick" con los patrones de bandera
+candlestick
+
+```
+
+Según la teoría, el **patrón de bandera** determina que las banderas ascendentes predecirán una tendencia bajita, mientras que las banderas descendentes una altista. **Esto no necesariamente se cumple para todos los casos encontrados, bajo los parámetros elejidos de pendiente y número de días de diferencia entre la longitud de las líneas supeiores e inferiores de la bandera**. Lo siguiente es determinar la efectividad del modelo con las herramientas de Análisis Topológico de Datos (TDA), a través de la biblioteca homónima.

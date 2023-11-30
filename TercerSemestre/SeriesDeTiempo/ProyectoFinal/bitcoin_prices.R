@@ -162,7 +162,7 @@ PivotHigh <- rep(0, Npivothigh)
 i_low=1
 i_high=1
 
-# El siguiente ciclo for es para llenar los valores de los arreglos 
+# El siguiente ciclo for es para llenar los valores de los arreglos
 # PivotlowDate, PivotLow, PivothighDate y PivotHigh, usando los índices auxiliares
 for (i in 1:nrow){
   if (Pivotlow[i] == 1){ 
@@ -272,8 +272,8 @@ for (i in 1:(Npivothigh - 5)){
   
 }
 
-# Verificamos que se hayan guardado las pendientes en los vectores "PivotLow.lm_slope" 
-# y "PivotHigh.lm_slope", así como los interceptos en 
+# Verificamos que se hayan guardado las pendientes en los vectores "PivotLow.lm_slope"
+# y "PivotHigh.lm_slope", así como los interceptos en
 # "PivotLow.lm_inter" y "PivotHigh.lm_inter"
 
 PivotLow.lm_slope
@@ -282,17 +282,17 @@ PivotHigh.lm_slope
 PivotLow.lm_inter
 PivotHigh.lm_inter
 
-
+# 
 # Creamos un objeto que guarde
 # el tamaño de los vectores "PivotLow.lm_slope"  y "PivotHigh.lm_slope"
 
 PivotLow.lm_slope_size <- length(PivotLow.lm_slope)
 PivotHigh.lm_slope_size <- length(PivotHigh.lm_slope)
 
-# Los siguientes ciclos for son para que se muestren las pendientes 
+# Los siguientes ciclos for son para que se muestren las pendientes
 # guardadas a lo largo de la serie de tiempo, tanto en el caso pivotlow
-# como PivotHigh. La función "as.numeric()" aplicada al objeto "Date" llamado 
-# "PivotlowDate_num", devolverá el número de días transcurridos entre el 1 de 
+# como PivotHigh. La función "as.numeric()" aplicada al objeto "Date" llamado
+# "PivotlowDate_num", devolverá el número de días transcurridos entre el 1 de
 # enero de 1970, y la fecha del datos. OJO: esta función devulve días, horas, minutos
 # o segundos, en función de el formato de fecha.
 
@@ -305,9 +305,9 @@ PivothighDate_num <- as.numeric(PivothighDate)
 # que formarán los márgenes de las banderas:
 # 1) La diferencia máxima en la pendiente de ambas líneas: si aumenta, se generarán
 # más líneas (y, por tanto, baneras) porque significa una mayor tolerancia
-# a qué tan paralelas serán los márgenes de la bandera. En nuestro caso 
+# a qué tan paralelas serán los márgenes de la bandera. En nuestro caso
 # lo determinaos como "<0.5".
-# 2) Máximo número de diferencias de días entre el inicio de la 
+# 2) Máximo número de diferencias de días entre el inicio de la
 # línea de pivotes altos y línea de pivots bajos: si aumentamos este valor,
 # aumentará el número de banderas, pues habrá una mayor tolerancia entre la diferencia
 # de longitud entre la líneas que se forman con pivotes altos (pivothigh) y
